@@ -246,3 +246,9 @@ export const bucketSamples: [string, string][][] = [
 export const retireSamples: [string, string][] = [
   ['Q2 pricing deck', 'Not opened in 7 months'], ['EMEA promo one-pager 2025', 'A newer version exists'], ['Webinar recap, March', 'Not opened in 6 months, in no deal room'],
 ]
+
+// While the change drains, other teams keep making content with the old value. Assumed, one week.
+export const drift = {
+  week: 7,
+  sources: [['Sales', 'copied the old Halden proposal for a new account', 4], ['Product marketing', 'a new partner one-pager', 2], ['Customer success', 'a renewal email template', 1]] as [string, string, number][],
+}

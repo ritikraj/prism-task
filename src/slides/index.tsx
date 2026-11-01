@@ -27,6 +27,7 @@ export const slides: SlideDef[] = [
   { id: 'one-change', act: A3, title: 'One change', steps: 1, Component: A3s.OneChange },
   { id: 'four-lanes', act: A3, title: 'Four lanes', steps: 4, Component: A3s.FourLanes },
   { id: 'shrink', act: A3, title: 'Shrink the queue', steps: 4, Component: A3s.Shrink },
+  { id: 'gate-both', act: A3, title: 'Gate both sides', steps: 2, Component: A3s.GateBothSides },
   { id: 'safe', act: A3, title: 'Safe while it drains', steps: 1, Component: A3s.SafeWhileDrains },
   { id: 'upload-check', act: A3, title: 'Upload check', steps: 2, Component: A3s.UploadCheck },
   { id: 'narrative', act: A3, title: 'When the story changes', steps: 2, Component: A3s.NarrativeChange },

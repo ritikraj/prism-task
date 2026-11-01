@@ -1,7 +1,7 @@
 // Act 3: The idea (slides 10–21).
 import type { ReactNode } from 'react'
 import { BeforeAfter, Cards, Counter, Frame, Reveal, Statement, Steps, useStep } from '../deck/blocks'
-import { chain, change, derived, facts, lanes, messages, retire, sellersAtRisk } from '../data/ledgerly'
+import { chain, change, company, derived, drift, facts, lanes, messages, retire, sellersAtRisk } from '../data/ledgerly'
 
 const discount = facts[0]
 
@@ -223,6 +223,45 @@ export function Shrink() {
           ))}
         </ol>
       </div>
+    </Frame>
+  )
+}
+
+// The queue is a moving target: other teams keep adding old-value content. Gate both ends.
+const Gate = ({ top, bottom, shut, ai }: { top?: ReactNode; bottom?: ReactNode; shut: boolean; ai?: boolean }) => (
+  <div className="gate">
+    <div className="gate-top">{top}</div>
+    <div className="gate-arrow">{shut && <span className={`gate-bar ${ai ? 'ai' : ''}`} />}</div>
+    <div className="gate-bottom">{bottom}</div>
+  </div>
+)
+export function GateBothSides() {
+  const step = useStep()
+  return (
+    <Frame eyebrow="Gate both sides" title={`${change.places} is not a fixed number.`}>
+      <div className="gates">
+        <div className="gate-node">
+          <div className="eyebrow">Creators</div>
+          <p>Other teams keep making content while you review.</p>
+          <Reveal at={1}><ul className="gate-list">{drift.sources.map(([team, what, n]) => <li key={team}><b>+{n}</b> {team}: {what}</li>)}</ul></Reveal>
+        </div>
+        <Gate shut={step >= 2} ai
+          top={<Reveal at={1}><b>+{drift.week} places this week</b> still say {change.from}</Reveal>}
+          bottom={<Reveal at={2}><div className="ai-label"><span className="ai-ic" /><span className="ai-text">On upload and save</span></div><p>AI spots {change.from} in new content and offers the token.</p></Reveal>} />
+        <div className="gate-node lib">
+          <div className="eyebrow">Library</div>
+          <div className="gate-num"><Counter value={change.places + (step >= 1 ? drift.week : 0)} /></div>
+          <p>{step >= 2 ? 'places to fix, and no longer growing' : `places say ${change.from}`}</p>
+        </div>
+        <Gate shut={step >= 2}
+          top={<Reveal at={1}><b>{sellersAtRisk.withMeetings} sellers</b> with meetings can open them today</Reveal>}
+          bottom={<Reveal at={2}><div>On open and share</div><p>A notification and a banner show {change.to}.</p></Reveal>} />
+        <div className="gate-node">
+          <div className="eyebrow">Sellers</div>
+          <p>{company.sellers} sellers open, download and send content to buyers.</p>
+        </div>
+      </div>
+      <Reveal at={2}><p className="lead">Nothing new gets in with {change.from}. Nothing old reaches a buyer without a warning.</p></Reveal>
     </Frame>
   )
 }
