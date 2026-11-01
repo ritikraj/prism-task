@@ -2,18 +2,18 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import './proto.css'
 import {
-  admin, batch, change, company, dashboard, facts, impactAssets, lanes, merge, pastChanges, retire, scan, sellerAlert,
-  sellersAtRisk, staleHolders, today, tracking,
+  admin, batch, bucketSamples, buckets, change, company, dashboard, facts, lanes, merge, pastChanges, retire, retireSamples, scan,
+  sellersAtRisk, today, type Bucket,
 } from '../data/ledgerly'
 import {
-  useProto, notHere, groups, judgment, DETAILED, GUIDE, CHANGE_ROUTES, LIBRARY_ROUTES, MODAL_ROUTES, CLAIM_ROUTES, decisionsLeft, placesApproved, scanLinked, spotsLeft,
+  useProto, notHere, groups, judgment, GUIDE, ORDER, allDone, bucketDone, CHANGE_ROUTES, LIBRARY_ROUTES, MODAL_ROUTES, CLAIM_ROUTES, scanLinked,
   type Route,
 } from './store'
-import { Conf, Head, Ic, Pri, Sheet, Stats } from './ui'
+import { Conf, Head, Ic, Sheet, Stats } from './ui'
 import { Asset, Claim, Claims, Library, Merge, Scan } from './Screens3'
 
 const SCREENS: Record<Route, () => JSX.Element> = {
-  home: Home, batch: Home, impact: Home, review: Home, golive: Home, tracking: Home,
+  home: Home, batch: Home, impact: Home, review: Home,
   scan: Home, merge: Home, claims: Claims, claim: Claim, library: Library, asset: Asset,
 }
 const RAIL: [string, string, Route | null][] = [
@@ -44,7 +44,7 @@ export default function Prototype() {
   const Screen = SCREENS[page]
   const section: Route = LIBRARY_ROUTES.includes(page) ? 'library' : CLAIM_ROUTES.includes(route) ? 'claims' : 'home'
   const CRUMBS: Record<Route, string[]> = {
-    home: ['Home'], batch: ['Home'], impact: ['Home'], review: ['Home'], golive: ['Home'], tracking: ['Home'],
+    home: ['Home'], batch: ['Home'], impact: ['Home'], review: ['Home'],
     library: ['Library'], asset: ['Library', 'Ledgerly pricing overview v7'], scan: ['Library', 'Scan results'],
     merge: ['Library', 'Duplicates'], claims: ['Claims'], claim: ['Claims', claim],
   }
@@ -101,22 +101,12 @@ export default function Prototype() {
   )
 }
 
-const TABS = { impact: Impact, review: Review, golive: GoLive, tracking: Tracking }
-
-// The annual discount change: Impact, Review, Go live, Tracking as tabs.
+// The annual discount change. No tabs: urgency cards, then one bucket at a time. Approving publishes.
 function ChangeSheet() {
   const s = useProto()
-  const tabs: [Route, string, boolean][] = [
-    ['impact', `Impact · ${change.places} places`, false],
-    ['review', `Review · ${decisionsLeft(s)} left`, false],
-    ['golive', s.live ? 'Go live · Live' : 'Go live', false],
-    ['tracking', 'Tracking', !s.live],
-  ]
-  const Body = TABS[s.route as keyof typeof TABS]
   return (
-    <Sheet title={change.title} sub={`${change.source} sync, ${change.synced}. Confirmed by ${change.owner}. Effective ${change.effective}, ${change.regions.toLowerCase()}.`} onClose={() => s.go('home')}
-      tabs={<div className="p-tabs">{tabs.map(([r, label, off]) => <button key={r} className={s.route === r ? 'on' : ''} disabled={off} onClick={() => s.go(r)}>{label}</button>)}</div>}>
-      <Body />
+    <Sheet title={change.title} sub={`${change.source} sync, ${change.synced}. Confirmed by ${change.owner}. Effective ${change.effective}, ${change.regions.toLowerCase()}.`} onClose={() => s.go(s.base)}>
+      {s.route === 'review' ? <BucketView /> : <Overview />}
     </Sheet>
   )
 }
@@ -141,7 +131,7 @@ function TierSheet() {
   )
 }
 
-const statusA = (s: { live: boolean; closed: boolean }) => (s.closed ? 'Closed' : s.live ? 'Live' : '')
+const statusA = (s: Parameters<typeof allDone>[0] & { live: boolean }) => (allDone(s) ? 'Published' : s.live ? 'Partly published' : '')
 const statusB = (s: { scheduled: boolean; ukScheduled: boolean }) =>
   s.scheduled && s.ukScheduled ? 'Scheduled' : s.scheduled || s.ukScheduled ? 'Partly scheduled' : ''
 
@@ -152,16 +142,16 @@ function Home() {
   const a = statusA(s), b = statusB(s)
   const cards = [
     <article key="a" className="p-change-card" onClick={() => go('impact')}>
-      <div className="p-card-top"><span className="p-chip">1 fact changed</span><span className="p-grow" />{a && <span className="p-chip ok">{a}</span>}</div>
+      <div className="p-card-top"><span className="p-chip">1 fact changed</span><span className="p-grow" />{a && <span className={`p-chip ${a === 'Published' ? 'ok' : ''}`}>{a}</span>}</div>
       <h2>{change.title}</h2>
       <p className="p-muted p-small">{change.source} sync, {change.synced}. Effective {change.effective}.</p>
-      <Stats items={[[<b>{change.places}</b>, 'places'], [<Pri p="P0" />, `${change.p0}`], [<Pri p="P1" />, `${change.p1}`]]} />
+      <Stats items={[[<b>{change.places}</b>, 'places'], [<b>{buckets[0].places}</b>, 'urgent']]} />
     </article>,
     <article key="b" className="p-change-card" onClick={() => go('batch')}>
       <div className="p-card-top"><span className="p-chip">{batch.tokens} facts changed</span><span className="p-grow" />{b && <span className={`p-chip ${b === 'Scheduled' ? 'ok' : ''}`}>{b}</span>}</div>
       <h2>{batch.title}</h2>
       <p className="p-muted p-small">{batch.tiers.length - 1} tiers on {batch.effective}. {batch.exception.tier} on {batch.exception.effective}.</p>
-      <Stats items={[[<b>{batch.places}</b>, 'places'], [<Pri p="P0" />, `${batch.p0}`], [<Pri p="P1" />, `${batch.p1}`]]} />
+      <Stats items={[[<b>{batch.places}</b>, 'places'], [<b>{batch.p0}</b>, 'urgent']]} />
     </article>,
     <article key="c" className="p-change-card" onClick={() => go('scan')}>
       <div className="p-card-top"><span className="p-chip">Scan result</span><span className="p-grow" />{Object.keys(scanDone).length > 0 && <span className="p-chip">In progress</span>}</div>
@@ -307,7 +297,7 @@ function AllChanges() {
       <table className="p-table">
         <thead><tr><th>Change</th><th>What changed</th><th>Status</th><th>Effective</th><th>Places</th></tr></thead>
         <tbody>{rows.map(([t, k, st, eff, p, open]) => (
-          <tr key={t} onClick={open}><td><b>{t}</b></td><td><span className="p-chip">{k}</span></td><td>{st && <span className={`p-chip ${st === 'Live' || st === 'Scheduled' ? 'ok' : ''}`}>{st}</span>}</td><td>{eff}</td><td>{p}</td></tr>
+          <tr key={t} onClick={open}><td><b>{t}</b></td><td><span className="p-chip">{k}</span></td><td>{st && <span className={`p-chip ${st === 'Published' || st === 'Scheduled' ? 'ok' : ''}`}>{st}</span>}</td><td>{eff}</td><td>{p}</td></tr>
         ))}</tbody>
       </table>
     </Sheet>
@@ -345,213 +335,144 @@ function TierTable({ title, rows, done, label, eff, onGo }: { title: string; row
   )
 }
 
-// 2. Impact: where the claim lives, most urgent first.
-function Impact() {
-  const { retired, set, go, say } = useProto()
-  const [confirm, setConfirm] = useState(false)
-  const assetsLeft = retired ? change.assets - retire.assets : change.assets
+// Step 1: what is left, by urgency. Each card says why its places sit there.
+function Overview() {
+  const s = useProto()
+  const open = (id: Bucket) => { s.set({ bucket: id }); s.go('review') }
+  const left = buckets.reduce((n, b) => n + b.places, 0)
   return (
     <>
-      <Head sub={`${change.places} places in ${change.assets} assets. Effective since ${change.effective}, so these are wrong today.`}>
-        {retired ? <span className="p-chip ok">{retire.assets} assets retired</span>
-          : confirm ? <span className="p-confirm">Retire {retire.places} places in {retire.assets} assets nobody opened in 6 months?
-              <button className="p-btn" onClick={() => { set({ retired: true }); setConfirm(false); say(`${retire.assets} assets retired. Undo stays available.`) }}>Retire</button>
-              <button className="p-btn" onClick={() => setConfirm(false)}>Cancel</button></span>
-          : <button className="p-btn" onClick={() => setConfirm(true)}>Retire {retire.assets} unused assets</button>}
-        <button className="p-btn primary" onClick={() => go('review')}>Start review</button>
-      </Head>
-      <div>
-        <div className="p-card-title">Assets, most urgent first · showing {impactAssets.length} of {assetsLeft}</div>
-        <table className="p-table">
-          <thead><tr><th>Priority</th><th>Asset</th><th>Type</th><th>Why</th><th>Places</th></tr></thead>
-          <tbody>{impactAssets.map(a => (
-            <tr key={a.name} onClick={notHere}><td><Pri p={a.priority} /></td><td><b>{a.name}</b></td><td>{a.type}</td><td className="p-muted">{a.why}</td><td>{a.places}</td></tr>
-          ))}</tbody>
-        </table>
+      <div className="p-done-strip"><Ic d="M5 12l5 5 9-11" /><span><b>{lanes.tokens} places already updated</b> by tokens when {change.owner} confirmed {change.to}.</span></div>
+      <div className="p-sec">
+        <div className="p-card-title">{left} places left, by urgency</div>
+        <div className="p-buckets">{buckets.map((b, bi) => {
+          const done = b.id === 'Low' ? (s.retired ? b.places : 0) : bucketDone(s, bi)
+          return (
+            <button key={b.id} className={`p-bucket ${done === b.places ? 'done' : ''}`} onClick={() => open(b.id)}>
+              <span className="p-row"><Urg u={b.id} /><span className="p-grow" />{done === b.places && <span className="p-chip ok">{b.id === 'Low' ? 'Retired' : 'Published'}</span>}</span>
+              <b className="p-big">{b.places - done}</b>
+              <span className="p-muted p-small">{done ? `of ${b.places} places left` : 'places'}</span>
+              <span className="p-small">{b.reason}</span>
+              <span className="p-meter"><span style={{ width: `${(done / b.places) * 100}%` }} /></span>
+            </button>
+          )
+        })}</div>
       </div>
+      <p className="p-muted p-small">Until a place is published, sellers who open it see a banner with the current value.</p>
     </>
   )
 }
 
-// 3. Review in three lanes.
-function Review() {
+const Urg = ({ u }: { u: Bucket }) => <span className={`p-chip urg-${u.toLowerCase()}`}>{u}</span>
+
+// Step 2: one bucket. Identical sentences approve and publish together; judgment items one by one.
+function BucketView() {
   const s = useProto()
-  const { groupsOk, excluded, jDone, jIndex, set, go } = s
-  const [lane, setLane] = useState<'token' | 'wording' | 'judgment'>('wording')
-  const [open, setOpen] = useState<string | null>(null)
+  const { bucket, pub, narrow, jDone, alerted, retired, set, say, go } = s
+  const [confirm, setConfirm] = useState(false)
+  const bi = ORDER.indexOf(bucket)
+  const b = buckets.find(x => x.id === bucket)!
+  const next = buckets[buckets.indexOf(b) + 1]
+  const nav = (
+    <div className="p-row p-bucket-nav">
+      <button className="p-link" onClick={() => go('impact')}>← All urgency levels</button><span className="p-grow" />
+      {next && <button className="p-btn" onClick={() => set({ bucket: next.id })}>Next: {next.id} · {next.places}</button>}
+    </div>
+  )
+  const head = (
+    <div className="p-head">
+      <div className="p-grow"><h1 className="p-row"><Urg u={b.id} /> {b.places} places</h1><p className="p-muted p-sub-line">{b.reason}.</p></div>
+    </div>
+  )
+  if (bi < 0) return (
+    <>
+      {nav}{head}
+      <div className="p-card">
+        {retireSamples.map(([a, why]) => <div key={a} className="p-row"><b>{a}</b><span className="p-grow p-muted">{why}</span></div>)}
+        <p className="p-muted p-small">Showing 3 of {retire.assets} assets. Owners can object for 14 days, and undo stays available.</p>
+        <div className="p-actions">
+          {retired ? <span className="p-chip ok">{retire.assets} assets retired</span>
+            : confirm ? <span className="p-confirm">Retire {retire.places} places in {retire.assets} assets?
+                <button className="p-btn primary" onClick={() => { set({ retired: true }); setConfirm(false); say(`${retire.assets} assets retired. Owners have 14 days to object.`) }}>Retire</button>
+                <button className="p-btn" onClick={() => setConfirm(false)}>Cancel</button></span>
+            : <button className="p-btn primary" onClick={() => setConfirm(true)}>Retire {retire.assets} assets</button>}
+        </div>
+      </div>
+    </>
+  )
+  const mine = groups.filter(g => g.split[bi] > 0)
+  const open = mine.filter(g => !pub[`${g.id}:${bi}`])
+  const items = judgment.filter(j => j.bucket === bi)
+  // Publish groups here, and in the other buckets too unless that group was narrowed to this one.
+  const publish = (gs: typeof groups) => {
+    const next = { ...pub }
+    let n = 0
+    gs.forEach(g => g.split.forEach((k, i) => {
+      const key = `${g.id}:${i}`
+      if (k > 0 && !next[key] && (i === bi || !narrow.includes(g.id))) { next[key] = true; n += k }
+    }))
+    set({ pub: next, live: true })
+    say(s.live ? `Published ${n} places.` : `Published ${n} places. ${sellersAtRisk.withMeetings} sellers with meetings this week get one alert.`)
+  }
   const decide = (id: string, v: 'ok' | 'sent') => {
-    const next = { ...jDone, [id]: v }
-    const n = judgment.findIndex((j, i) => i < DETAILED && !next[j.id])
-    set({ jDone: next, jIndex: n >= 0 ? n : jIndex })
+    set({ jDone: { ...jDone, [id]: v }, live: s.live || v === 'ok' })
+    say(v === 'ok' ? 'Published.' : 'Sent to Product marketing.')
   }
-  const toggleEx = (g: string, k: number) => {
-    const cur = excluded[g] ?? []
-    set({ excluded: { ...excluded, [g]: cur.includes(k) ? cur.filter(x => x !== k) : [...cur, k] } })
-  }
-  const j = judgment[jIndex]
   return (
     <>
-      <Head sub="Approve once per group. Decide judgment items one at a time. Anything left keeps an outdated banner.">
-        <span className="p-counter"><b>{decisionsLeft(s)}</b> decisions left</span>
-        <button className="p-btn primary" onClick={() => go('golive')}>Go live with what is approved</button>
-      </Head>
-      <div className="p-tabs">
-        <button className={lane === 'token' ? 'on' : ''} onClick={() => setLane('token')}>Tokens · {lanes.tokens} places</button>
-        <button className={lane === 'wording' ? 'on' : ''} onClick={() => setLane('wording')}>Same wording · {lanes.groups - groupsOk.length} of {lanes.groups} groups</button>
-        <button className={lane === 'judgment' ? 'on' : ''} onClick={() => setLane('judgment')}>Judgment · {lanes.judgment - Object.keys(jDone).length} of {lanes.judgment}</button>
-      </div>
-      {lane === 'token' && (
-        <div className="p-card">
-          <p><b>{lanes.tokens} places</b> hold <code>{`{${change.token}}`}</code>. They update by themselves at go live.</p>
-          <p className="p-muted">Read only. {change.owner} confirmed the new value, so there is nothing to decide here.</p>
+      {nav}{head}
+      <section className="p-sec">
+        <div className="p-row p-table-head">
+          <span className="p-card-title p-grow ai-label"><span className="ai-ic" /><span className="ai-text">Same sentence, found by AI · {mine.length} groups</span></span>
+          {open.length > 0 ? <button className="p-btn primary" onClick={() => publish(open)}>Approve & Publish all {open.length}</button> : <span className="p-chip ok">All published</span>}
         </div>
-      )}
-      {lane === 'wording' && (
-        <div className="p-stack">
-          {groups.map(g => {
-            const ok = groupsOk.includes(g.id)
-            const ex = excluded[g.id] ?? []
-            return (
-              <div key={g.id} className={`p-card ${ok ? 'done' : ''}`}>
-                <div className="p-row">
-                  <div className="p-grow">
-                    <div className="p-diff"><s>{g.old}</s><span>{g.next}</span></div>
-                    <div className="p-muted p-small">Same wording in {g.places} places{ex.length > 0 && `, ${ex.length} excluded`} · Source: {change.source} <Conf c="High" /></div>
-                  </div>
-                  <button className="p-link" onClick={() => setOpen(open === g.id ? null : g.id)}>{open === g.id ? 'Hide samples' : 'See samples'}</button>
-                  {ok ? <span className="p-chip ok">Approved</span>
-                    : <button className="p-btn" onClick={() => set({ groupsOk: [...groupsOk, g.id] })}>Approve {g.places - ex.length}</button>}
+        {mine.map(g => {
+          const here = g.split[bi]
+          const elsewhere = g.split.reduce((n, k, i) => n + (i !== bi && !pub[`${g.id}:${i}`] ? k : 0), 0)
+          const done = pub[`${g.id}:${bi}`]
+          return (
+            <div key={g.id} className={`p-card ${done ? 'done' : ''}`}>
+              <div className="p-row">
+                <div className="p-grow">
+                  <div className="p-diff"><s>{g.old}</s><span>{g.next}</span></div>
+                  <div className="p-muted p-small">{here} places here · e.g. {bucketSamples[bi][Number(g.id.slice(1)) % 3][0]}: {bucketSamples[bi][Number(g.id.slice(1)) % 3][1]}</div>
                 </div>
-                {open === g.id && (
-                  <div className="p-samples">
-                    {g.samples.map((w, k) => (
-                      <div key={w} className={`p-sample ${ex.includes(k) ? 'off' : ''}`}>
-                        <span className="p-grow"><span className="p-small p-muted">{w}</span><br />…{g.next}…</span>
-                        {!ok && <button className="p-link" onClick={() => toggleEx(g.id, k)}>{ex.includes(k) ? 'Include' : 'Exclude'}</button>}
-                      </div>
-                    ))}
-                    <span className="p-muted p-small">Showing 3 of {g.places}. Excluded places stay as they are and keep the banner.</span>
-                  </div>
-                )}
+                {done ? <span className="p-chip ok">Published</span> : <button className="p-btn" onClick={() => publish([g])}>Approve & Publish {here}</button>}
               </div>
-            )
-          })}
-        </div>
-      )}
-      {lane === 'judgment' && (
-        <>
-          <div className="p-card p-judge">
-            <div className="p-row">
-              <span className="p-muted p-small p-grow">Item {jIndex + 1} of {judgment.length} · {j.kind} · {j.where}</span>
-              <Conf c={j.confidence} /><span className="p-chip">Suggested: {j.route}</span>
+              {!done && elsewhere > 0 && (
+                <label className="p-check p-small">
+                  <input type="checkbox" checked={!narrow.includes(g.id)} onChange={e => set({ narrow: e.target.checked ? narrow.filter(x => x !== g.id) : [...narrow, g.id] })} />
+                  Also publish the {elsewhere} places in other urgency levels with this sentence
+                </label>
+              )}
             </div>
-            <div className="p-diff big"><s>{j.old}</s><span>{j.next}</span></div>
+          )
+        })}
+      </section>
+      <section className="p-sec">
+        <div className="p-card-title">Decide one by one · {items.filter(j => !jDone[j.id]).length} of {items.length} left</div>
+        {items.map(j => (
+          <div key={j.id} className={`p-card p-judge ${jDone[j.id] ? 'done' : ''}`}>
+            <div className="p-row"><span className="p-muted p-small p-grow">{j.kind} · {j.where}</span><Conf c={j.confidence} /></div>
+            <div className="p-diff"><s>{j.old}</s><span>{j.next}</span></div>
             {j.working && <div className="p-working"><span className="p-small ai-label"><span className="ai-ic" /><span className="ai-text">How AI got here</span></span>{j.working}</div>}
             <div className="p-actions">
-              {jDone[j.id] ? <span className="p-chip ok">{jDone[j.id] === 'ok' ? 'Approved' : 'Sent to Product marketing'}</span>
-                : j.route === 'Product marketing' ? <>
-                    <button className="p-btn primary" onClick={() => decide(j.id, 'sent')}>Send to Product marketing</button>
-                    <button className="p-btn" onClick={() => decide(j.id, 'ok')}>Decide myself</button>
-                  </>
-                : <>
-                    <button className="p-btn primary" onClick={() => decide(j.id, 'ok')}>Approve</button>
-                    <button className="p-btn" onClick={notHere}>Edit</button>
-                    <button className="p-btn" onClick={() => decide(j.id, 'sent')}>Send to Product marketing</button>
-                  </>}
-              <span className="p-grow" />
-              <button className="p-btn" disabled={jIndex === 0} onClick={() => set({ jIndex: jIndex - 1 })}>Previous</button>
-              <button className="p-btn" disabled={jIndex >= DETAILED - 1} onClick={() => set({ jIndex: jIndex + 1 })}>Next item</button>
+              {jDone[j.id] ? <span className="p-chip ok">{jDone[j.id] === 'ok' ? 'Published' : 'Sent to Product marketing'}</span> : <>
+                <button className={`p-btn ${j.route === 'Admin' ? 'primary' : ''}`} onClick={() => decide(j.id, 'ok')}>Approve & Publish</button>
+                <button className={`p-btn ${j.route === 'Admin' ? '' : 'primary'}`} onClick={() => decide(j.id, 'sent')}>Send to Product marketing</button>
+              </>}
             </div>
           </div>
-          <div className="p-card-title p-mt">All {judgment.length} items</div>
-          <table className="p-table">
-            <thead><tr><th>Item</th><th>Where</th><th>Confidence</th><th>Route</th><th /></tr></thead>
-            <tbody>{judgment.map((x, i) => (
-              <tr key={x.id} className={i === jIndex ? 'sel' : ''} onClick={() => (i < DETAILED ? set({ jIndex: i }) : undefined)}>
-                <td>{x.kind}</td><td className="p-muted">{x.where}</td><td>{x.confidence}</td><td>{x.route}</td>
-                <td>{jDone[x.id] ? <span className="p-chip ok">{jDone[x.id] === 'ok' ? 'Approved' : 'Sent'}</span>
-                  : i >= DETAILED && <button className="p-btn" onClick={e => { e.stopPropagation(); decide(x.id, x.route === 'Admin' ? 'ok' : 'sent') }}>{x.route === 'Admin' ? 'Approve' : 'Send'}</button>}</td>
-              </tr>
-            ))}</tbody>
-          </table>
-        </>
-      )}
-    </>
-  )
-}
-
-// 4. Go live, with the seller banner and alert previews.
-function GoLive() {
-  const s = useProto()
-  const { live, draft, set, go, say } = s
-  const approved = placesApproved(s)
-  const jOk = Object.values(s.jDone).filter(v => v === 'ok').length
-  const [text, setText] = useState(`Hi team, a quick correction before Thursday. Our annual discount is now ${change.to}, not the ${change.from} in the proposal I sent on Oct 12. The updated proposal is attached. Priya`)
-  return (
-    <>
-      <Head sub={`Effective since ${change.effective}, so there is nothing to schedule. Undo stays available for the whole change.`}>
-        {live ? <><span className="p-chip ok">Live</span><button className="p-btn" onClick={() => go('tracking')}>View tracking</button></>
-          : <button className="p-btn primary" onClick={() => { set({ live: true }); say(`Live. ${sellersAtRisk.withMeetings} sellers alerted.`); go('tracking') }}>Go live now</button>}
-      </Head>
-      <div className="p-three">
-        <div className="p-card"><div className="p-card-title">Goes live now</div><b className="p-big">{lanes.tokens + approved + jOk}</b><span className="p-muted">{lanes.tokens} tokens, {approved} grouped places, {jOk} judgment items</span></div>
-        <div className="p-card"><div className="p-card-title">Still in review</div><b className="p-big">{decisionsLeft(s)}</b><span className="p-muted">decisions. Their assets show sellers an outdated banner until fixed.</span></div>
-        <div className="p-card"><div className="p-card-title">Who is told</div><b className="p-big">{sellersAtRisk.withMeetings}</b><span className="p-muted">sellers using P0 and P1 assets, not all {company.sellers}. {sellersAtRisk.holdingCopies} of them hold the {sellersAtRisk.copies} stale copies.</span></div>
-      </div>
-      <div className="p-two even">
-        <div>
-          <div className="p-card-title">What sellers see on an unfixed asset</div>
-          <div className="p-deck">
-            <div className="p-outdated">Pricing on this slide is outdated. Current annual discount: {change.to}.</div>
-            <div className="p-deck-body"><b>Pricing that grows with you</b><span>Save {change.from} with annual billing.</span></div>
-          </div>
-        </div>
-        <div>
-          <div className="p-card-title">Alert preview: Priya Nair</div>
-          <div className="p-chat">
-            <div className="p-msg-from">Prism</div>
-            {sellerAlert.map(l => <p key={l} className="p-msg-line">{l}</p>)}
-            <div className="p-actions"><button className="p-btn" onClick={() => set({ draft: !draft })}>Draft a note to Halden</button></div>
-            {draft && (
-              <div className="p-draft">
-                <textarea rows={4} value={text} onChange={e => setText(e.target.value)} />
-                <span className="p-muted p-small">Suggested by Prism. Priya edits and sends it herself.</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </>
-  )
-}
-
-// 5. Tracking, after go live.
-function Tracking() {
-  const { nudged, set, go, say } = useProto()
-  const [confirm, setConfirm] = useState(false)
-  const m: [ReactNode, string][] = [
-    [tracking.alerted, 'sellers alerted'], [tracking.opened, 'opened the alert'],
-    [`${tracking.staleOut} of ${tracking.staleTotal}`, 'stale copies still out'], [tracking.buyerNotes, 'buyer notes sent'], [tracking.inReview, 'items still in review'],
-  ]
-  return (
-    <>
-      <Head sub="Two days after go live. Assumed numbers.">
-        {confirm ? <span className="p-confirm">Roll back every edit in this change?
-            <button className="p-btn" onClick={() => { set({ live: false }); setConfirm(false); say(`Rolled back. Content shows ${change.from} again.`); go('golive') }}>Roll back</button>
-            <button className="p-btn" onClick={() => setConfirm(false)}>Cancel</button></span>
-          : <button className="p-btn" onClick={() => setConfirm(true)}>Roll back</button>}
-        <button className="p-btn primary" onClick={() => { set({ closed: true }); say('Change closed.'); go('home') }}>Close change</button>
-      </Head>
-      <div className="p-summary">{m.map(([n, l]) => <div key={l} className="p-stat"><b>{n}</b><span>{l}</span></div>)}</div>
-      <div className="p-card">
-        <div className="p-row"><span className="p-card-title p-grow">Stale copies still out</span>
-          {nudged ? <span className="p-chip ok">Nudge sent</span> : <button className="p-btn" onClick={() => { set({ nudged: true }); say(`Nudged the sellers holding ${tracking.staleOut} copies.`) }}>Nudge stale copy holders</button>}
-        </div>
-        {staleHolders.map(h => (
-          <div key={h.seller} className="p-row"><b>{h.seller}</b><span className="p-grow p-muted">{h.copy}</span><span className="p-chip">{h.status}</span></div>
         ))}
-      </div>
+      </section>
+      <section className="p-sec">
+        <div className="p-card-title">Copies sellers already sent · {b.copies}</div>
+        <div className="p-card p-row">
+          <span className="p-grow">{b.copies} copies are in buyer inboxes and cannot be edited. {b.sellers.join(', ')} get a note with the updated file.</span>
+          {alerted.includes(b.id) ? <span className="p-chip ok">Alerted</span>
+            : <button className="p-btn" onClick={() => { set({ alerted: [...alerted, b.id] }); say(`${b.sellers.length} sellers alerted.`) }}>Alert {b.sellers.length} sellers</button>}
+        </div>
+      </section>
     </>
   )
 }
-

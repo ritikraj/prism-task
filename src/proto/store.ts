@@ -1,6 +1,6 @@
 // Prototype data + in-memory state. "Reset demo" (or a page refresh) restores everything.
 import { create } from 'zustand'
-import { change, derived, facts, lanes, merge, scan, wordingGroups } from '../data/ledgerly'
+import { buckets, change, derived, facts, groupSplit, judgmentSplit, merge, scan, wordingGroups, type Bucket } from '../data/ledgerly'
 
 const POOL_SCAN = [
   'Starter plan one-pager, page 1', 'Mid-market proposal template, page 4', 'Onboarding deck, slide 8', 'Security overview, slide 2',
@@ -9,8 +9,9 @@ const POOL_SCAN = [
 ]
 
 export type Confidence = 'High' | 'Medium' | 'Low'
-export type Route = 'home' | 'batch' | 'impact' | 'review' | 'golive' | 'tracking' | 'scan' | 'merge' | 'claims' | 'claim' | 'library' | 'asset'
-export const CHANGE_ROUTES: Route[] = ['impact', 'review', 'golive', 'tracking']
+export type Route = 'home' | 'batch' | 'impact' | 'review' | 'scan' | 'merge' | 'claims' | 'claim' | 'library' | 'asset'
+// impact: the four urgency cards; review: inside one of them.
+export const CHANGE_ROUTES: Route[] = ['impact', 'review']
 export const LIBRARY_ROUTES: Route[] = ['library', 'asset']
 // These open as side modals over the page you came from (base).
 export const MODAL_ROUTES: Route[] = [...CHANGE_ROUTES, 'batch', 'scan', 'merge']
@@ -19,10 +20,8 @@ export const CLAIM_ROUTES: Route[] = ['claims', 'claim']
 // The guided path, in order.
 export const GUIDE: { route: Route; caption: string }[] = [
   { route: 'home', caption: 'Changes arrive from their source, sorted by how many live deals they touch.' },
-  { route: 'impact', caption: `${change.places} places, ranked by who is about to use them. Retire what nobody opens.` },
-  { route: 'review', caption: `${change.places} edits became ${lanes.decisions} decisions, in three lanes.` },
-  { route: 'golive', caption: 'What is approved goes live. The rest carries a warning. Only 63 sellers are told.' },
-  { route: 'tracking', caption: 'After go live: who saw it, and which copies are still out.' },
+  { route: 'impact', caption: `${change.places} places. 160 already updated by tokens. The other 296 sorted by urgency, each with its reason.` },
+  { route: 'review', caption: 'Urgent first. Identical sentences approve and publish together. The rest one by one.' },
   { route: 'scan', caption: `${scan.total} spots could hold tokens. Link them now and the next change updates them by itself.` },
   { route: 'library', caption: 'Every asset shows its health: current, outdated, or in review.' },
   { route: 'asset', caption: 'Claims are marked in place. Any file can be scanned on demand.' },
@@ -38,13 +37,13 @@ const POOL = [
   'Partner pricing guide, page 6', 'Onboarding deck, slide 12', 'Q4 promo battlecard', 'Halden renewal proposal, page 3',
 ]
 export const groups = wordingGroups.map(([old, places], i) => ({
-  id: `g${i}`, old, next: old.replace('20%', change.to), places,
+  id: `g${i}`, old, next: old.replace('20%', change.to), places, split: groupSplit[i],
   samples: [0, 1, 2].map(k => POOL[(i * 3 + k) % POOL.length]),
 }))
 
-export type JItem = { id: string; kind: string; where: string; old: string; next: string; working?: string; confidence: Confidence; route: 'Admin' | 'Product marketing' }
+export type JItem = { id: string; bucket: number; kind: string; where: string; old: string; next: string; working?: string; confidence: Confidence; route: 'Admin' | 'Product marketing' }
 const starter = Number(facts[1].value.match(/\d+/)![0])
-const detailed: JItem[] = [
+const detailed: Omit<JItem, 'bucket'>[] = [
   {
     id: 'j1', kind: 'Derived number', where: 'Norvik ROI one-pager, page 2', confidence: 'High', route: 'Admin',
     old: `"${derived.text} $${derived.before.toLocaleString('en-US')} a year."`,
@@ -70,13 +69,14 @@ const detailed: JItem[] = [
 const KINDS = ['Derived number', 'Claim built on a fact', 'Chart', 'Video']
 const CONF: Confidence[] = ['Medium', 'High', 'Low']
 // 28 in total: 8 routed to Product marketing (j2 + 7 more), 20 to the admin.
+const bucketOf = (i: number) => (i < judgmentSplit[0] ? 0 : i < judgmentSplit[0] + judgmentSplit[1] ? 1 : 2)
 export const judgment: JItem[] = [
   ...detailed,
-  ...Array.from({ length: lanes.judgment - detailed.length }, (_, i): JItem => ({
+  ...Array.from({ length: judgmentSplit.reduce((a, b) => a + b) - detailed.length }, (_, i): Omit<JItem, 'bucket'> => ({
     id: `j${i + 5}`, kind: KINDS[i % 4], where: POOL[(i + 3) % POOL.length], confidence: CONF[i % 3],
     route: i < 7 ? 'Product marketing' : 'Admin', old: 'Mentions the 20% annual discount.', next: 'Update to 15%.',
   })),
-]
+].map((j, i) => ({ ...j, bucket: bucketOf(i) }))
 export const DETAILED = detailed.length
 
 type S = {
@@ -85,19 +85,17 @@ type S = {
   guide: boolean
   toast: string | null
   retired: boolean
-  groupsOk: string[]
-  excluded: Record<string, number[]>
+  bucket: Bucket
+  pub: Record<string, true>
+  narrow: string[]
   jDone: Record<string, 'ok' | 'sent'>
-  jIndex: number
+  alerted: Bucket[]
   live: boolean
-  closed: boolean
   scheduled: boolean
   ukScheduled: boolean
   sheet: string | null
   allOpen: boolean
   untokOpen: boolean
-  draft: boolean
-  nudged: boolean
   claim: string
   scanDone: Record<number, 'ok' | 'no'>
   spotsOff: Record<number, number[]>
@@ -114,8 +112,8 @@ type S = {
   reset: () => void
 }
 const initial = {
-  route: 'home' as Route, base: 'home' as Route, guide: true, toast: null, retired: false, groupsOk: [], excluded: {}, jDone: {}, jIndex: 0,
-  live: false, closed: false, scheduled: false, ukScheduled: false, sheet: null, allOpen: false, untokOpen: false, draft: false, nudged: false,
+  route: 'home' as Route, base: 'home' as Route, guide: true, toast: null, retired: false, bucket: 'Urgent' as Bucket, pub: {}, narrow: [], jDone: {}, alerted: [],
+  live: false, scheduled: false, ukScheduled: false, sheet: null, allOpen: false, untokOpen: false,
   claim: 'annual_discount', scanDone: {}, spotsOff: {}, uptimeOwner: null, flagged: false,
   fileScanned: false, fileLinked: false, v6Asked: false, merged: false, notDup: false,
 }
@@ -124,18 +122,23 @@ export const useProto = create<S>(set => ({
   ...initial,
   // Jumping to tracking (from the guide) implies the change went live.
   go: route => set(s => ({
-    route, base: MODAL_ROUTES.includes(route) ? (MODAL_ROUTES.includes(s.route) ? s.base : s.route) : route, toast: null, sheet: null, allOpen: false, untokOpen: false, live: s.live || route === 'tracking' })),
+    route, base: MODAL_ROUTES.includes(route) ? (MODAL_ROUTES.includes(s.route) ? s.base : s.route) : route, toast: null, sheet: null, allOpen: false, untokOpen: false })),
   set: p => set(p),
   say: toast => { clearTimeout(timer); set({ toast }); timer = window.setTimeout(() => set({ toast: null }), 2400) },
   reset: () => set({ ...initial }),
 }))
 export const notHere = () => useProto.getState().say('Not in this prototype yet.')
 
-export const decisionsLeft = (s: Pick<S, 'groupsOk' | 'jDone'>) => lanes.decisions - s.groupsOk.length - Object.keys(s.jDone).length
+// Places handled in a bucket (0 Urgent, 1 High, 2 Medium): published groups, decided items, alerted copies.
+export const ORDER: Bucket[] = ['Urgent', 'High', 'Medium']
+export const bucketDone = (s: Pick<S, 'pub' | 'jDone' | 'alerted'>, bi: number) =>
+  groups.reduce((n, g) => n + (s.pub[`${g.id}:${bi}`] ? g.split[bi] : 0), 0)
+  + judgment.filter(j => j.bucket === bi && s.jDone[j.id]).length
+  + (s.alerted.includes(ORDER[bi]) ? buckets[bi].copies : 0)
+export const allDone = (s: Pick<S, 'pub' | 'jDone' | 'alerted' | 'retired'>) =>
+  s.retired && ORDER.every((_, bi) => bucketDone(s, bi) === buckets[bi].places)
+
 // Spots linked by the scan, per token (feeds the claim library's linked counts).
 export const scanLinked = (s: Pick<S, 'scanDone' | 'spotsOff'>, token: string) =>
   scan.patterns.reduce((n, p, i) => n + ((p.token ?? p.newFact?.token) === token && s.scanDone[i] === 'ok' ? p.spots - (s.spotsOff[i]?.length ?? 0) : 0), 0)
 export const spotsLeft = (s: Pick<S, 'scanDone'>) => scan.patterns.reduce((n, p, i) => n - (s.scanDone[i] ? p.spots : 0), scan.total)
-
-export const placesApproved =(s: Pick<S, 'groupsOk' | 'excluded'>) =>
-  groups.filter(g => s.groupsOk.includes(g.id)).reduce((n, g) => n + g.places - (s.excluded[g.id]?.length ?? 0), 0)

@@ -31,10 +31,8 @@ export function SystemModel() {
 
 const FLOW: [string, string][] = [
   ['Home', 'Changes arrive from their source, sorted by deals at risk.'],
-  ['Impact', 'Where the claim lives, ranked by upcoming meetings.'],
-  ['Review', 'In three lanes: tokens, same wording groups, judgment.'],
-  ['Go live', `Approved edits go live. Only the ${sellersAtRisk.withMeetings} sellers who need it are told.`],
-  ['Tracking', 'Who saw it, and copies already in buyer inboxes.'],
+  ['Impact', 'Tokens already updated. The rest in four urgency levels, each with its reason.'],
+  ['Approve & Publish', `Identical sentences publish together, the rest one by one. Only the ${sellersAtRisk.withMeetings} sellers who need it are told.`],
   ['Library', 'Scans and merges make the next change smaller.'],
 ]
 export function Flow() {

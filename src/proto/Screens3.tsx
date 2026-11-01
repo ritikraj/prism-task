@@ -1,7 +1,7 @@
 // Phase 3 screens: scan results, duplicate merge, claim library + detail, content library + asset detail.
 import { useState } from 'react'
 import { change, claimHistory, facts, impactAssets, library, merge, messages, scan, v7, type LibAsset, type Part } from '../data/ledgerly'
-import { useProto, notHere, scanSpots, scanLinked, spotsLeft } from './store'
+import { useProto, notHere, scanSpots, scanLinked, spotsLeft, allDone } from './store'
 import { Dropdown, Head, Sheet } from './ui'
 
 const healthClass = (h: string) => (h === 'Current' ? 'ok' : h === 'In review' ? 'review' : 'warn')
@@ -153,7 +153,7 @@ export function Claims() {
             return (
               <tr key={f.token} onClick={() => { s.set({ claim: f.token }); s.go('claim') }}>
                 <td><code>{`{${f.token}}`}</code></td>
-                <td>{f.value}{f.token === change.token && !s.closed && <span className="p-chip warn">Changing to {change.to}</span>}</td>
+                <td>{f.value}{f.token === change.token && !allDone(s) && <span className="p-chip warn">Changing to {change.to}</span>}</td>
                 <td>{f.owner}</td><td>{f.source}</td><td>{f.lastChecked}</td>
                 <td>{linked} of {f.usedIn} places</td>
               </tr>

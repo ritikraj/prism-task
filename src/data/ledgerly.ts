@@ -223,3 +223,26 @@ export const pastChanges: [string, string, string, number][] = [
   ['SSO on all plans', '1 fact changed', 'Aug 30', 84],
   ['Q3 APAC pricing update', '9 facts changed', 'Jul 1', 142],
 ]
+
+// Annual discount change, by urgency. 160 token places are already updated; these four hold the other 296.
+// Urgent + High + Medium = 130 same-wording places + 28 judgment items + 18 copies sellers already sent.
+export type Bucket = 'Urgent' | 'High' | 'Medium' | 'Low'
+export const buckets: { id: Bucket; reason: string; places: number; copies: number; sellers: string[] }[] = [
+  { id: 'Urgent', reason: 'In the deal room of, or shared with, an account that meets in the next 7 days', places: 31, copies: 5, sellers: ['Priya Nair', 'Tom Becker', 'Ana Ruiz'] },
+  { id: 'High', reason: 'Used this month by a seller who has a meeting in the next 7 days', places: 64, copies: 8, sellers: ['Leo Martin', 'Sara Kim', 'Ravi Shah', 'Emma Clarke', 'Jon Ortiz', 'Mia Laurent'] },
+  { id: 'Medium', reason: 'Used by anyone in the last 90 days', places: 81, copies: 5, sellers: ['Arjun Mehta', 'Chloe Dupont', 'Omar Haddad', 'Lisa Novak', 'Ben Carter'] },
+  { id: 'Low', reason: 'Not opened in 6 months, in no deal room, or a newer version exists', places: 120, copies: 0, sellers: [] },
+]
+// How each same-wording group's places split across Urgent, High, Medium (rows sum to the group, columns to 21 / 47 / 62).
+export const groupSplit = [[10, 14, 17], [5, 8, 9], [3, 6, 9], [2, 5, 5], [1, 4, 6], [0, 4, 5], [0, 3, 4], [0, 2, 4], [0, 1, 3]]
+// Judgment items per bucket: 5 / 9 / 14 = 28.
+export const judgmentSplit = [5, 9, 14]
+// Sample places and why each sits in its bucket.
+export const bucketSamples: [string, string][][] = [
+  [['Halden renewal proposal', 'Shared with Halden, meeting Thu 11:00 (Priya)'], ['Clearwater pricing deck', 'In the Clearwater deal room, meeting Tue (Ana)'], ['Norvik ROI one-pager', 'Shared with Norvik, meeting Wed (Tom)']],
+  [['Ledgerly pricing overview v7', 'Downloaded by 12 sellers with meetings'], ['Annual billing FAQ', 'Viewed by 21 sellers this month'], ['Mid-market proposal template', 'Used in 9 proposals this month']],
+  [['Onboarding deck', 'Opened 14 times in 90 days'], ['Partner pricing guide', 'Opened 6 times in 90 days'], ['Renewal email template', 'Sent 11 times in 90 days']],
+]
+export const retireSamples: [string, string][] = [
+  ['Q2 pricing deck', 'Not opened in 7 months'], ['EMEA promo one-pager 2025', 'A newer version exists'], ['Webinar recap, March', 'Not opened in 6 months, in no deal room'],
+]
