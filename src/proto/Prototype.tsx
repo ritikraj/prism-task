@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import './proto.css'
 import {
-  admin, batch, change, chain, company, impactAssets, lanes, merge, priorityRules, retire, scan, sellerAlert,
+  admin, batch, change, company, impactAssets, lanes, merge, retire, scan, sellerAlert,
   sellersAtRisk, staleHolders, today, tracking,
 } from '../data/ledgerly'
 import {
@@ -23,7 +23,7 @@ const RAIL: [string, string, Route | null][] = [
 ]
 
 export default function Prototype() {
-  const { route, guide, toast, claim, go, set, reset } = useProto()
+  const { route, guide, toast, claim, sheet, go, set, reset } = useProto()
   const root = useRef<HTMLDivElement>(null)
   const [full, setFull] = useState(false)
   useEffect(() => {
@@ -39,11 +39,11 @@ export default function Prototype() {
   )
   const gi = GUIDE.findIndex(g => g.route === route)
   const inChange = CHANGE_ROUTES.includes(route)
-  const Screen = SCREENS[route]
+  // A single change opens as a side modal over Home.
+  const Screen = inChange ? Home : SCREENS[route]
   const section: Route = LIBRARY_ROUTES.includes(route) ? 'library' : CLAIM_ROUTES.includes(route) ? 'claims' : 'home'
   const CRUMBS: Record<Route, string[]> = {
-    home: ['Home'], batch: ['Home', batch.title], impact: ['Home', change.title], review: ['Home', change.title],
-    golive: ['Home', change.title], tracking: ['Home', change.title],
+    home: ['Home'], batch: ['Home', batch.title], impact: ['Home'], review: ['Home'], golive: ['Home'], tracking: ['Home'],
     library: ['Library', 'All content'], asset: ['Library', 'Ledgerly pricing overview v7'], scan: ['Library', 'Scan results'],
     merge: ['Library', 'Duplicates'], claims: ['Claims'], claim: ['Claims', claim],
   }
@@ -68,11 +68,12 @@ export default function Prototype() {
             <span className="p-grow" /><span className="p-muted p-small">{company.name} · {today}</span>
           </header>
           <div className="p-panel">
-            {inChange && <ChangeNav />}
             {section === 'library' && <LibraryNav />}
             <main className="p-main"><Screen /></main>
           </div>
         </div>
+        {inChange && <ChangeSheet />}
+        {route === 'batch' && sheet && <TierSheet />}
       </div>
       {guide ? (
         <div className="p-caption">
@@ -117,33 +118,70 @@ function LibraryNav() {
   )
 }
 
-// Inner navigation for one change, like a settings section.
-function ChangeNav() {
-  const s = useProto()
-  const items: [Route, string, string, boolean][] = [
-    ['impact', 'Impact', `${change.places} places`, false],
-    ['review', 'Review', `${decisionsLeft(s)} left`, false],
-    ['golive', 'Go live', s.live ? 'Live' : '', false],
-    ['tracking', 'Tracking', '', !s.live],
-  ]
+// One big side modal for every single change. Esc or the scrim closes it.
+function Sheet({ title, sub, tabs, onClose, children }: { title: string; sub: ReactNode; tabs?: ReactNode; onClose: () => void; children: ReactNode }) {
+  useEffect(() => {
+    const on = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    window.addEventListener('keydown', on)
+    return () => window.removeEventListener('keydown', on)
+  }, [onClose])
   return (
-    <aside className="p-sub">
-      <div className="p-sub-title">Annual discount</div>
-      <div className="p-muted p-small">{change.from} to {change.to} · effective {change.effective}</div>
-      <div className="p-sub-list">
-        {items.map(([r, label, meta, off]) => (
-          <button key={r} className={`p-sub-item ${s.route === r ? 'on' : ''}`} disabled={off} onClick={() => s.go(r)}>
-            <span className="p-grow">{label}</span><span className="p-muted p-small">{meta}</span>
-          </button>
-        ))}
+    <div className="p-scrim" onClick={onClose}>
+      <section className="p-sheet" role="dialog" aria-label={title} onClick={e => e.stopPropagation()}>
+        <header className="p-sheet-head">
+          <div className="p-head">
+            <div className="p-grow"><h1>{title}</h1><p className="p-muted p-sub-line">{sub}</p></div>
+            <button className="p-icon" aria-label="Close" title="Close" onClick={onClose}><Ic d="M6 6l12 12M18 6L6 18" /></button>
+          </div>
+          {tabs}
+        </header>
+        <div className="p-sheet-body">{children}</div>
+      </section>
+    </div>
+  )
+}
+
+// The annual discount change: Impact, Review, Go live, Tracking as tabs.
+function ChangeSheet() {
+  const s = useProto()
+  const tabs: [Route, string, boolean][] = [
+    ['impact', `Impact · ${change.places} places`, false],
+    ['review', `Review · ${decisionsLeft(s)} left`, false],
+    ['golive', s.live ? 'Go live · Live' : 'Go live', false],
+    ['tracking', 'Tracking', !s.live],
+  ]
+  const Body = SCREENS[s.route]
+  return (
+    <Sheet title={change.title} sub={`${change.source} sync, ${change.synced}. Confirmed by ${change.owner}. Effective ${change.effective}, ${change.regions.toLowerCase()}.`} onClose={() => s.go('home')}
+      tabs={<div className="p-tabs">{tabs.map(([r, label, off]) => <button key={r} className={s.route === r ? 'on' : ''} disabled={off} onClick={() => s.go(r)}>{label}</button>)}</div>}>
+      <Body />
+    </Sheet>
+  )
+}
+
+// One tier of the batch. Token only, so there is nothing to review.
+function TierSheet() {
+  const { sheet, scheduled, ukScheduled, set } = useProto()
+  const [tier, token, from, to] = batch.tiers.find(t => t[1] === sheet)!
+  const uk = tier === batch.exception.tier
+  const eff = uk ? batch.exception.effective : batch.effective
+  const done = uk ? ukScheduled : scheduled
+  return (
+    <Sheet title={`${tier} price`} sub={`${from} to ${to} · effective ${eff}. Part of ${batch.title}.`} onClose={() => set({ sheet: null })}>
+      <div className="p-summary">
+        <div className="p-stat"><b>{from}</b><span>now</span></div>
+        <div className="p-stat"><b>{to}</b><span>new</span></div>
+        <div className="p-stat"><b>{eff}</b><span>effective</span></div>
       </div>
-    </aside>
+      <div className="p-banner">Every place holding <code>{`{${token}}`}</code> updates by itself on {eff}. Nothing to rewrite or review.</div>
+      <div>{done ? <span className="p-chip ok">Scheduled for {eff}</span> : <span className="p-muted p-small">Schedule it from its table on the batch page.</span>}</div>
+    </Sheet>
   )
 }
 
 // 1. Home: incoming changes, sorted by P0 count, then effective date.
 function Home() {
-  const { go, live, closed, split, scheduled, merged, scanDone } = useProto()
+  const { go, live, closed, scheduled, ukScheduled, merged, scanDone } = useProto()
   const bStatus = closed ? 'Closed' : live ? 'Live' : 'Ready to review'
   return (
     <>
@@ -156,19 +194,12 @@ function Home() {
           <Stats items={[[<b>{change.places}</b>, 'places'], [<b>{change.assets}</b>, 'assets'], [<Pri p="P0" />, `${change.p0}`], [<Pri p="P1" />, `${change.p1}`], [<b>{change.staleCopies}</b>, 'stale copies']]} />
         </article>
         <article className="p-change-card" onClick={() => go('batch')}>
-          <div className="p-card-top"><span className="p-chip">Batch change</span><span className="p-grow" /><span className={`p-chip ${scheduled ? 'ok' : 'warn'}`}>{scheduled ? `Scheduled for ${batch.effective}` : 'Ready to review'}</span></div>
+          <div className="p-card-top"><span className="p-chip">Batch change</span><span className="p-grow" /><span className={`p-chip ${scheduled && ukScheduled ? 'ok' : 'warn'}`}>{scheduled && ukScheduled ? 'Scheduled' : scheduled || ukScheduled ? 'Partly scheduled' : 'Ready to review'}</span></div>
           <h2>{batch.title}</h2>
           <p className="p-muted p-small">{change.source} sync, {batch.synced}. {batch.tokens} tokens changed. Effective {batch.effective}.</p>
           <Stats items={[[<b>{batch.places}</b>, 'places'], [<b>{batch.assets}</b>, 'assets'], [<Pri p="P0" />, `${batch.p0}`], [<Pri p="P1" />, `${batch.p1}`], [<b>{batch.staleCopies}</b>, 'stale copies']]} />
-          {!split && <p className="p-flag">1 exception: {batch.exception.tier} takes effect {batch.exception.effective}, not {batch.effective}.</p>}
+          <p className="p-muted p-small">{batch.tiers.length - 1} tiers on {batch.effective}. {batch.exception.tier} on {batch.exception.effective}.</p>
         </article>
-        {split && (
-          <article className="p-change-card" onClick={notHere}>
-            <div className="p-card-top"><span className="p-chip">Single change</span><span className="p-grow" /><span className="p-chip">Waiting</span></div>
-            <h2>{batch.exception.tier} price</h2>
-            <p className="p-muted p-small">Split from {batch.title}. Effective {batch.exception.effective}.</p>
-          </article>
-        )}
         <article className="p-change-card" onClick={() => go('scan')}>
           <div className="p-card-top"><span className="p-chip">Scan result</span><span className="p-grow" />{Object.keys(scanDone).length > 0 && <span className="p-chip">In progress</span>}</div>
           <h2><span className="ai-ic" /> AI found {scan.total} spots that could become tokens</h2>
@@ -184,80 +215,61 @@ function Home() {
   )
 }
 
-// Card A: a token-only batch. Nothing to rewrite; check the dates.
+// Card A: a token-only batch. Two tables by effective date, one action each. A row opens that tier.
 function Batch() {
-  const { split, scheduled, set, say, go } = useProto()
-  const [warn, setWarn] = useState(false)
-  const rows = batch.tiers.filter(t => !(split && t[0] === batch.exception.tier))
-  const schedule = () => { set({ scheduled: true }); say(`Scheduled for ${batch.effective}. Sellers with affected meetings get an alert that day.`); go('home') }
+  const { scheduled, ukScheduled, set, say } = useProto()
+  const main = batch.tiers.filter(t => t[0] !== batch.exception.tier)
+  const uk = batch.tiers.filter(t => t[0] === batch.exception.tier)
   return (
     <>
-      <Head title={batch.title} sub={`${batch.places} places in ${batch.assets} assets. All of them hold tokens, so nothing needs rewriting.`} />
-      <div className="p-banner">Every place updates by itself on the effective date. Your job here is to check the dates.</div>
-      <table className="p-table">
-        <thead><tr><th>Tier</th><th>Token</th><th>Now</th><th>New</th><th>Effective</th><th /></tr></thead>
-        <tbody>{rows.map(([tier, token, from, to]) => {
-          const ex = tier === batch.exception.tier
-          return (
-            <tr key={token} className={ex ? 'hot' : ''}>
-              <td>{tier}</td><td><code>{`{${token}}`}</code></td><td>{from}</td><td><b>{to}</b></td>
-              <td>{ex ? <span className="p-chip warn">{batch.exception.effective}</span> : batch.effective}</td>
-              <td>{ex && <button className="p-btn" onClick={() => { set({ split: true }); setWarn(false); say(`${tier} split into its own change.`) }}>Split into its own change</button>}</td>
-            </tr>
-          )
-        })}</tbody>
-      </table>
-      <div className="p-foot">
-        {scheduled ? <span className="p-chip ok">Scheduled for {batch.effective}</span>
-          : warn ? <span className="p-confirm">{batch.exception.tier} would go live on {batch.effective}, not {batch.exception.effective}.
-              <button className="p-btn" onClick={() => { set({ split: true }); setWarn(false) }}>Split it first</button>
-              <button className="p-btn" onClick={schedule}>Schedule anyway</button></span>
-          : <button className="p-btn primary" onClick={() => (split ? schedule() : setWarn(true))}>Schedule for {batch.effective}</button>}
-      </div>
+      <Head title={batch.title} sub={`${batch.places} places in ${batch.assets} assets. All of them hold tokens, so nothing needs rewriting. Check the dates.`} />
+      <TierTable title={`Effective ${batch.effective}`} rows={main} done={scheduled} label={`Schedule ${main.length} tiers for ${batch.effective}`} eff={batch.effective}
+        onGo={() => { set({ scheduled: true }); say(`${main.length} tiers scheduled for ${batch.effective}.`) }} />
+      <TierTable title={`Effective ${batch.exception.effective}`} rows={uk} done={ukScheduled} label={`Schedule for ${batch.exception.effective}`} eff={batch.exception.effective}
+        onGo={() => { set({ ukScheduled: true }); say(`${batch.exception.tier} scheduled for ${batch.exception.effective}.`) }} />
     </>
   )
 }
+function TierTable({ title, rows, done, label, eff, onGo }: { title: string; rows: [string, string, string, string][]; done: boolean; label: string; eff: string; onGo: () => void }) {
+  const set = useProto(s => s.set)
+  return (
+    <div>
+      <div className="p-row p-table-head"><span className="p-card-title p-grow">{title} · {rows.length} {rows.length === 1 ? 'tier' : 'tiers'}</span>
+        {done ? <span className="p-chip ok">Scheduled for {eff}</span> : <button className="p-btn primary" onClick={onGo}>{label}</button>}
+      </div>
+      <table className="p-table">
+        <thead><tr><th>Tier</th><th>Token</th><th>Now</th><th>New</th><th>Effective</th></tr></thead>
+        <tbody>{rows.map(([tier, token, from, to]) => (
+          <tr key={token} onClick={() => set({ sheet: token })}><td><b>{tier}</b></td><td><code>{`{${token}}`}</code></td><td>{from}</td><td><b>{to}</b></td><td>{eff}</td></tr>
+        ))}</tbody>
+      </table>
+    </div>
+  )
+}
 
-// 2. Impact: where the claim lives, and how the queue shrinks.
+// 2. Impact: where the claim lives, most urgent first.
 function Impact() {
   const { retired, set, go, say } = useProto()
   const [confirm, setConfirm] = useState(false)
   const assetsLeft = retired ? change.assets - retire.assets : change.assets
   return (
     <>
-      <Head title="Impact" sub={`${change.places} places in ${change.assets} assets. Effective since ${change.effective}, so these are wrong today.`}>
+      <Head sub={`${change.places} places in ${change.assets} assets. Effective since ${change.effective}, so these are wrong today.`}>
+        {retired ? <span className="p-chip ok">{retire.assets} assets retired</span>
+          : confirm ? <span className="p-confirm">Retire {retire.places} places in {retire.assets} assets nobody opened in 6 months?
+              <button className="p-btn" onClick={() => { set({ retired: true }); setConfirm(false); say(`${retire.assets} assets retired. Undo stays available.`) }}>Retire</button>
+              <button className="p-btn" onClick={() => setConfirm(false)}>Cancel</button></span>
+          : <button className="p-btn" onClick={() => setConfirm(true)}>Retire {retire.assets} unused assets</button>}
         <button className="p-btn primary" onClick={() => go('review')}>Start review</button>
       </Head>
-      <div className="p-card">
-        <div className="p-card-title">How the queue shrinks</div>
-        {chain.map((c, i) => (
-          <div key={c.move} className={`p-row ${i === 1 && retired ? 'done' : ''}`}>
-            <span className="p-grow">{c.move}</span>
-            {i === 1 && (retired ? <span className="p-chip ok">Retired</span>
-              : confirm ? <span className="p-confirm">Retire {retire.places} places in {retire.assets} assets?
-                  <button className="p-btn primary" onClick={() => { set({ retired: true }); setConfirm(false); say(`${retire.assets} assets retired. Undo stays available.`) }}>Retire</button>
-                  <button className="p-btn" onClick={() => setConfirm(false)}>Cancel</button></span>
-              : <button className="p-btn" onClick={() => setConfirm(true)}>Retire {retire.places} places in {retire.assets} assets</button>)}
-            <span className="p-muted p-num">{i > 0 ? `−${c.removes}` : ''}</span>
-            <b className="p-num">{c.left}</b>
-          </div>
-        ))}
-        <p className="p-muted p-small">{lanes.decisions} decisions = {lanes.groups} group approvals + {lanes.judgment} judgment items.</p>
-      </div>
-      <div className="p-two">
-        <div>
-          <div className="p-card-title">Assets, most urgent first · showing {impactAssets.length} of {assetsLeft}</div>
-          <table className="p-table">
-            <thead><tr><th>Priority</th><th>Asset</th><th>Type</th><th>Why</th><th>Places</th></tr></thead>
-            <tbody>{impactAssets.map(a => (
-              <tr key={a.name} onClick={notHere}><td><Pri p={a.priority} /></td><td><b>{a.name}</b></td><td>{a.type}</td><td className="p-muted">{a.why}</td><td>{a.places}</td></tr>
-            ))}</tbody>
-          </table>
-        </div>
-        <div className="p-card">
-          <div className="p-card-title">How priority works</div>
-          {priorityRules.map(([p, rule]) => <div key={p} className="p-rule"><Pri p={p} /><span className="p-small">{rule}</span></div>)}
-        </div>
+      <div>
+        <div className="p-card-title">Assets, most urgent first · showing {impactAssets.length} of {assetsLeft}</div>
+        <table className="p-table">
+          <thead><tr><th>Priority</th><th>Asset</th><th>Type</th><th>Why</th><th>Places</th></tr></thead>
+          <tbody>{impactAssets.map(a => (
+            <tr key={a.name} onClick={notHere}><td><Pri p={a.priority} /></td><td><b>{a.name}</b></td><td>{a.type}</td><td className="p-muted">{a.why}</td><td>{a.places}</td></tr>
+          ))}</tbody>
+        </table>
       </div>
     </>
   )
@@ -281,7 +293,7 @@ function Review() {
   const j = judgment[jIndex]
   return (
     <>
-      <Head title="Review" sub="Approve once per group. Decide judgment items one at a time. Anything left keeps an outdated banner.">
+      <Head sub="Approve once per group. Decide judgment items one at a time. Anything left keeps an outdated banner.">
         <span className="p-counter"><b>{decisionsLeft(s)}</b> decisions left</span>
         <button className="p-btn primary" onClick={() => go('golive')}>Go live with what is approved</button>
       </Head>
@@ -379,7 +391,7 @@ function GoLive() {
   const [text, setText] = useState(`Hi team, a quick correction before Thursday. Our annual discount is now ${change.to}, not the ${change.from} in the proposal I sent on Oct 12. The updated proposal is attached. Priya`)
   return (
     <>
-      <Head title="Go live" sub={`Effective since ${change.effective}, so there is nothing to schedule. Undo stays available for the whole change.`}>
+      <Head sub={`Effective since ${change.effective}, so there is nothing to schedule. Undo stays available for the whole change.`}>
         {live ? <><span className="p-chip ok">Live</span><button className="p-btn" onClick={() => go('tracking')}>View tracking</button></>
           : <button className="p-btn primary" onClick={() => { set({ live: true }); say(`Live. ${sellersAtRisk.withMeetings} sellers alerted.`); go('tracking') }}>Go live now</button>}
       </Head>
@@ -425,7 +437,7 @@ function Tracking() {
   ]
   return (
     <>
-      <Head title="Tracking" sub="Two days after go live. Assumed numbers.">
+      <Head sub="Two days after go live. Assumed numbers.">
         {confirm ? <span className="p-confirm">Roll back every edit in this change?
             <button className="p-btn" onClick={() => { set({ live: false }); setConfirm(false); say(`Rolled back. Content shows ${change.from} again.`); go('golive') }}>Roll back</button>
             <button className="p-btn" onClick={() => setConfirm(false)}>Cancel</button></span>

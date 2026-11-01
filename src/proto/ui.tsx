@@ -4,9 +4,9 @@ import type { Confidence } from './store'
 
 export const Conf = ({ c }: { c: Confidence }) => <span className={`p-chip conf-${c.toLowerCase()}`}>{c} confidence</span>
 export const Pri = ({ p }: { p: string }) => <span className={`p-chip pri-${p.toLowerCase()}`}>{p}</span>
-export const Head = ({ title, sub, children }: { title: string; sub?: ReactNode; children?: ReactNode }) => (
+export const Head = ({ title, sub, children }: { title?: string; sub?: ReactNode; children?: ReactNode }) => (
   <div className="p-head">
-    <div className="p-grow"><h1>{title}</h1>{sub && <p className="p-muted p-sub-line">{sub}</p>}</div>
+    <div className="p-grow">{title && <h1>{title}</h1>}{sub && <p className="p-muted p-sub-line">{sub}</p>}</div>
     {children}
   </div>
 )
