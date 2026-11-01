@@ -102,19 +102,28 @@ export function Anatomy() {
   )
 }
 
+// The claim library as a table: every claim has one home. Our 20% is one row of many.
 export function ClaimHome() {
+  const step = useStep()
+  const rows: [string, string, string, string, string][] = [
+    ...facts.map(f => [f.token, 'Fact', f.value, f.owner, f.source] as [string, string, string, string, string]),
+    ...messages.map(m => [m.text, 'Message', '', m.owner, m.source] as [string, string, string, string, string]),
+  ]
   return (
-    <Frame eyebrow="A claim has a home" illustrative>
-      <div className="claim-card">
-        <Token name={discount.token} />
-        <div className="claim-value">{discount.value}</div>
-        <dl>
-          <dt>Owner</dt><dd>{discount.owner}</dd>
-          <dt>Source</dt><dd>{discount.source}</dd>
-          <dt>Last checked</dt><dd>{discount.lastChecked}</dd>
-        </dl>
-        <Reveal at={1}><div className="claim-used">Used in {discount.usedIn} places</div></Reveal>
-      </div>
+    <Frame eyebrow="A claim has a home" title="Every claim lives in one place." illustrative>
+      <table className="claim-table">
+        <thead><tr><th>Claim</th><th>Type</th><th>Value</th><th>Owner</th><th>Source</th></tr></thead>
+        <tbody>{rows.map(([name, type, value, owner, source]) => {
+          const hl = name === discount.token
+          return (
+            <tr key={name} className={step >= 1 ? (hl ? 'hl' : 'dim') : ''}>
+              <td>{type === 'Fact' ? <Token name={name} /> : name}</td>
+              <td className="muted">{type}</td><td>{value}</td><td>{owner}</td><td className="muted">{source}</td>
+            </tr>
+          )
+        })}</tbody>
+      </table>
+      <Reveal at={1}><p className="caption">Our {change.from} is one row. One value, one owner, one source. Every asset points here.</p></Reveal>
     </Frame>
   )
 }

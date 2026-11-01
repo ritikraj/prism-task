@@ -262,3 +262,13 @@ kbd { font: 500 12px var(--font); border: 1px solid var(--line); border-bottom-w
 .ex-logo { border: 1px solid var(--line); padding: 3px 10px; font-size: 12px; font-weight: 600; color: var(--muted); }
 .ex-spacer { visibility: hidden; }
 .ex-claims p { display: flex; align-items: center; gap: 8px; }
+
+/* slide 12: claim library table */
+.claim-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 17px; }
+.claim-table th { text-align: left; font-size: 12px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); padding: 0 16px 12px; border-bottom: 1px solid var(--line); }
+.claim-table td { padding: 13px 16px; border-bottom: 1px solid var(--line); transition: opacity 400ms; }
+.claim-table tr.dim td { opacity: .3; }
+.claim-table tr.hl td { font-weight: 600; border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink); background: var(--selected); }
+.claim-table tr.hl td:first-child { border-left: 2px solid var(--ink); }
+.claim-table tr.hl td:last-child { border-right: 2px solid var(--ink); }
+@media (prefers-reduced-motion: reduce) { .claim-table td { transition: none; } }
