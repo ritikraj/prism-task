@@ -292,3 +292,13 @@
 .p-container { container-type: inline-size; }
 .p-dash { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 @container (max-width: 760px) { .p-dash { grid-template-columns: repeat(2, minmax(0, 1fr)); } .p-skel-grid { grid-template-columns: 1fr; } }
+
+/* Library: the page never scrolls; the table body does, under a sticky header */
+.p-main.fixed { overflow: hidden; }
+.p-main.fixed .p-container { flex: 1; min-height: 0; }
+.p-table-scroll { flex: 1; min-height: 0; overflow: auto; }
+.p-table-scroll .p-table th { position: sticky; top: 0; z-index: 1; }
+.p-pager { display: flex; align-items: center; gap: 6px; flex: none; }
+.p-page { min-width: 32px; height: 32px; border: 1px solid transparent; border-radius: 8px; background: none; color: var(--p-ink); cursor: pointer; font-size: 13px; }
+.p-page:hover { background: var(--p-bg); }
+.p-page.on { border-color: var(--p-line); background: var(--p-surface); font-weight: 600; }

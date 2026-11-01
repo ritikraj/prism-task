@@ -205,39 +205,53 @@ export function Claim() {
 }
 
 // Content library: custom filters, real tags, health as a dot plus plain text. Sorted by health.
+// The page never scrolls: the table body does, under a fixed header, with pagination below.
 type Filter = 'type' | 'team' | 'creator' | 'tag'
+const PAGE = 20
 export function Library() {
   const { go, merged } = useProto()
-  const [f, setF] = useState<Record<Filter, string>>({ type: 'All', team: 'All', creator: 'All', tag: 'All' })
+  const [f, setFilters] = useState<Record<Filter, string>>({ type: 'All', team: 'All', creator: 'All', tag: 'All' })
+  const [page, setPage] = useState(0)
+  const setF = (v: Record<Filter, string>) => { setFilters(v); setPage(0) }
   const keys = Object.keys(f) as Filter[]
   const values = (a: LibAsset, k: Filter) => (k === 'tag' ? a.tags : [a[k]])
   const opts = (k: Filter) => ['All', ...Array.from(new Set(library.flatMap(a => values(a, k)))).sort()]
   const rows = library.filter(a => keys.every(k => f[k] === 'All' || values(a, k).includes(f[k]))).sort((x, y) => healthRank(x.health) - healthRank(y.health))
   const any = keys.some(k => f[k] !== 'All')
+  const pages = Math.max(1, Math.ceil(rows.length / PAGE))
+  const shown = rows.slice(page * PAGE, page * PAGE + PAGE)
   return (
     <>
-      <Head title="All content" sub={`${rows.length} of 1,240 assets shown. Sorted by health.`}>
+      <Head title="All content" sub={`${rows.length} of 1,240 assets match. Sorted by health.`}>
         <button className="p-btn" onClick={notHere}>Upload</button>
       </Head>
       <div className="p-filters">
         {keys.map(k => <Dropdown key={k} label={k[0].toUpperCase() + k.slice(1)} value={f[k]} options={opts(k)} onChange={v => setF({ ...f, [k]: v })} />)}
         {any && <button className="p-link" onClick={() => setF({ type: 'All', team: 'All', creator: 'All', tag: 'All' })}>Clear filters</button>}
       </div>
-      <table className="p-table">
-        <thead><tr><th>Asset</th><th>Type</th><th>Team</th><th>Creator</th><th>Tags</th><th>Health</th><th>Updated</th></tr></thead>
-        <tbody>{rows.map(a => {
-          const live = DETAIL.includes(a.id)
-          return (
-            <tr key={a.id} className={live ? '' : 'static'} onClick={live ? () => (a.id === 'v7' ? go('asset') : notHere()) : undefined}>
-              <td><b>{a.name}</b>{a.id === 'v7' && <span className="p-chip">{merged ? '3 linked versions' : '1 of 14 versions'}</span>}</td>
-              <td>{a.type}</td><td>{a.team}</td><td>{a.creator}</td>
-              <td><span className="p-tags">{a.tags.map(t => <span key={t} className="p-tag">{t}</span>)}</span></td>
-              <td><span className="p-health"><i className={healthClass(a.health)} />{a.health}</span></td><td className="p-muted">{a.updated}</td>
-            </tr>
-          )
-        })}</tbody>
-      </table>
-      {rows.length === 0 && <p className="p-muted">No assets match these filters.</p>}
+      <div className="p-table-scroll">
+        <table className="p-table">
+          <thead><tr><th>Asset</th><th>Type</th><th>Team</th><th>Creator</th><th>Tags</th><th>Health</th><th>Updated</th></tr></thead>
+          <tbody>{shown.map(a => {
+            const live = DETAIL.includes(a.id)
+            return (
+              <tr key={a.id} className={live ? '' : 'static'} onClick={live ? () => (a.id === 'v7' ? go('asset') : notHere()) : undefined}>
+                <td><b>{a.name}</b>{a.id === 'v7' && <span className="p-chip">{merged ? '3 linked versions' : '1 of 14 versions'}</span>}</td>
+                <td>{a.type}</td><td>{a.team}</td><td>{a.creator}</td>
+                <td><span className="p-tags">{a.tags.map(t => <span key={t} className="p-tag">{t}</span>)}</span></td>
+                <td><span className="p-health"><i className={healthClass(a.health)} />{a.health}</span></td><td className="p-muted">{a.updated}</td>
+              </tr>
+            )
+          })}</tbody>
+        </table>
+        {rows.length === 0 && <p className="p-muted">No assets match these filters.</p>}
+      </div>
+      <div className="p-pager">
+        <span className="p-muted p-small p-grow">{rows.length ? `${page * PAGE + 1}–${page * PAGE + shown.length} of ${rows.length}` : '0 of 0'}</span>
+        <button className="p-btn" disabled={page === 0} onClick={() => setPage(page - 1)}>Previous</button>
+        {Array.from({ length: pages }, (_, i) => <button key={i} className={`p-page ${i === page ? 'on' : ''}`} aria-current={i === page ? 'page' : undefined} onClick={() => setPage(i)}>{i + 1}</button>)}
+        <button className="p-btn" disabled={page >= pages - 1} onClick={() => setPage(page + 1)}>Next</button>
+      </div>
     </>
   )
 }

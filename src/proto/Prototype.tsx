@@ -68,7 +68,7 @@ export default function Prototype() {
             <span className="p-grow" /><span className="p-muted p-small">{company.name} · {today}</span>
           </header>
           <div className="p-panel">
-            <main className="p-main"><div className="p-container"><Screen /></div></main>
+            <main className={`p-main ${route === 'library' ? 'fixed' : ''}`}><div className="p-container"><Screen /></div></main>
           </div>
         </div>
         {inChange && <ChangeSheet />}
