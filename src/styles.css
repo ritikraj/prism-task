@@ -272,3 +272,4 @@ kbd { font: 500 12px var(--font); border: 1px solid var(--line); border-bottom-w
 .claim-table tr.hl td:first-child { border-left: 2px solid var(--ink); }
 .claim-table tr.hl td:last-child { border-right: 2px solid var(--ink); }
 @media (prefers-reduced-motion: reduce) { .claim-table td { transition: none; } }
+.claim-table td:not(:first-child) { white-space: nowrap; }
