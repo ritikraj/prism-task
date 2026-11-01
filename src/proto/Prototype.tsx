@@ -6,7 +6,7 @@ import {
   sellersAtRisk, staleHolders, today, tracking,
 } from '../data/ledgerly'
 import {
-  useProto, notHere, groups, judgment, DETAILED, GUIDE, CHANGE_ROUTES, LIBRARY_ROUTES, CLAIM_ROUTES, decisionsLeft, placesApproved, scanLinked, spotsLeft,
+  useProto, notHere, groups, judgment, DETAILED, GUIDE, CHANGE_ROUTES, LIBRARY_ROUTES, MODAL_ROUTES, CLAIM_ROUTES, decisionsLeft, placesApproved, scanLinked, spotsLeft,
   type Route,
 } from './store'
 import { Conf, Head, Ic, Pri, Sheet, Stats } from './ui'
@@ -14,7 +14,7 @@ import { Asset, Claim, Claims, Library, Merge, Scan } from './Screens3'
 
 const SCREENS: Record<Route, () => JSX.Element> = {
   home: Home, batch: Home, impact: Home, review: Home, golive: Home, tracking: Home,
-  scan: Scan, merge: Merge, claims: Claims, claim: Claim, library: Library, asset: Asset,
+  scan: Home, merge: Home, claims: Claims, claim: Claim, library: Library, asset: Asset,
 }
 const RAIL: [string, string, Route | null][] = [
   ['Home', 'M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z', 'home'],
@@ -23,7 +23,7 @@ const RAIL: [string, string, Route | null][] = [
 ]
 
 export default function Prototype() {
-  const { route, guide, toast, claim, sheet, allOpen, go, set, reset } = useProto()
+  const { route, base, guide, toast, claim, sheet, allOpen, go, set, reset } = useProto()
   const root = useRef<HTMLDivElement>(null)
   const [full, setFull] = useState(false)
   useEffect(() => {
@@ -40,14 +40,15 @@ export default function Prototype() {
   const gi = GUIDE.findIndex(g => g.route === route)
   const inChange = CHANGE_ROUTES.includes(route)
   // Changes open as side modals over Home; no change has a page of its own.
-  const Screen = SCREENS[route]
-  const section: Route = LIBRARY_ROUTES.includes(route) ? 'library' : CLAIM_ROUTES.includes(route) ? 'claims' : 'home'
+  const page = MODAL_ROUTES.includes(route) ? base : route
+  const Screen = SCREENS[page]
+  const section: Route = LIBRARY_ROUTES.includes(page) ? 'library' : CLAIM_ROUTES.includes(route) ? 'claims' : 'home'
   const CRUMBS: Record<Route, string[]> = {
     home: ['Home'], batch: ['Home'], impact: ['Home'], review: ['Home'], golive: ['Home'], tracking: ['Home'],
     library: ['Library', 'All content'], asset: ['Library', 'Ledgerly pricing overview v7'], scan: ['Library', 'Scan results'],
     merge: ['Library', 'Duplicates'], claims: ['Claims'], claim: ['Claims', claim],
   }
-  const crumbs = CRUMBS[route]
+  const crumbs = CRUMBS[page]
   return (
     <div className="p-root" ref={root}>
       <div className="p-app">
@@ -68,12 +69,14 @@ export default function Prototype() {
             <span className="p-grow" /><span className="p-muted p-small">{company.name} · {today}</span>
           </header>
           <div className="p-panel">
-            <main className={`p-main ${route === 'library' ? 'fixed' : ''}`}><div className="p-container"><Screen /></div></main>
+            <main className={`p-main ${page === 'library' ? 'fixed' : ''}`}><div className="p-container"><Screen /></div></main>
           </div>
         </div>
         {inChange && <ChangeSheet />}
         {route === 'batch' && <BatchSheet />}
         {route === 'batch' && sheet && <TierSheet />}
+        {route === 'scan' && <Sheet title="Scan results" onClose={() => go(base)}><Scan /></Sheet>}
+        {route === 'merge' && <Sheet title={`${merge.versions} versions of ${merge.asset}`} onClose={() => go(base)}><Merge /></Sheet>}
         {allOpen && <AllChanges />}
       </div>
       {guide ? (

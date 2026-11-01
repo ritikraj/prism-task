@@ -21,7 +21,7 @@ export function Scan() {
   }
   return (
     <>
-      <Head title="Scan results" sub="Plain text that matches a fact. Linked spots update by themselves on the next change.">
+      <Head sub="Plain text that matches a fact. Linked spots update by themselves on the next change.">
         <span className="p-counter"><b>{spotsLeft(s)}</b> of {scan.total} spots left</span>
       </Head>
       <div className="p-stack">
@@ -93,12 +93,12 @@ export function Scan() {
 
 // Duplicate merge (Card D).
 export function Merge() {
-  const { merged, notDup, set, say, go } = useProto()
+  const { merged, notDup, base, set, say, go } = useProto()
   const [diffs, setDiffs] = useState(false)
   const settled = merged || notDup
   return (
     <>
-      <Head title={`${merge.versions} near-identical versions of ${merge.asset}`} sub="Found by comparing slide text and images across the library.">
+      <Head sub="Found by comparing slide text and images across the library.">
         {merged ? <span className="p-chip ok">Merged</span> : notDup ? <span className="p-chip">Marked as not duplicates</span> : <>
           <button className="p-btn" onClick={() => setDiffs(d => !d)}>{diffs ? 'Hide differences' : 'Review differences'}</button>
           <button className="p-btn" onClick={() => { set({ notDup: true }); say('Kept as separate assets.') }}>Not duplicates</button>
@@ -123,7 +123,7 @@ export function Merge() {
         {merge.result.map(r => <div key={r} className="p-row"><span className="p-grow">{r}</span></div>)}
         <div className="p-banner">Future pricing changes touch {merge.keep} assets here, not {merge.versions}.</div>
       </div>
-      {settled && <div className="p-foot"><button className="p-btn" onClick={() => go('library')}>Back to the library</button></div>}
+      {settled && <div className="p-foot"><button className="p-btn primary" onClick={() => go(base)}>Done</button></div>}
     </>
   )
 }

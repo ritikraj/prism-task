@@ -11,7 +11,9 @@ const POOL_SCAN = [
 export type Confidence = 'High' | 'Medium' | 'Low'
 export type Route = 'home' | 'batch' | 'impact' | 'review' | 'golive' | 'tracking' | 'scan' | 'merge' | 'claims' | 'claim' | 'library' | 'asset'
 export const CHANGE_ROUTES: Route[] = ['impact', 'review', 'golive', 'tracking']
-export const LIBRARY_ROUTES: Route[] = ['library', 'asset', 'scan', 'merge']
+export const LIBRARY_ROUTES: Route[] = ['library', 'asset']
+// These open as side modals over the page you came from (base).
+export const MODAL_ROUTES: Route[] = [...CHANGE_ROUTES, 'batch', 'scan', 'merge']
 export const CLAIM_ROUTES: Route[] = ['claims', 'claim']
 
 // The guided path, in order.
@@ -79,6 +81,7 @@ export const DETAILED = detailed.length
 
 type S = {
   route: Route
+  base: Route
   guide: boolean
   toast: string | null
   retired: boolean
@@ -111,7 +114,7 @@ type S = {
   reset: () => void
 }
 const initial = {
-  route: 'home' as Route, guide: true, toast: null, retired: false, groupsOk: [], excluded: {}, jDone: {}, jIndex: 0,
+  route: 'home' as Route, base: 'home' as Route, guide: true, toast: null, retired: false, groupsOk: [], excluded: {}, jDone: {}, jIndex: 0,
   live: false, closed: false, scheduled: false, ukScheduled: false, sheet: null, allOpen: false, untokOpen: false, draft: false, nudged: false,
   claim: 'annual_discount', scanDone: {}, spotsOff: {}, uptimeOwner: null, flagged: false,
   fileScanned: false, fileLinked: false, v6Asked: false, merged: false, notDup: false,
@@ -120,7 +123,8 @@ let timer = 0
 export const useProto = create<S>(set => ({
   ...initial,
   // Jumping to tracking (from the guide) implies the change went live.
-  go: route => set(s => ({ route, toast: null, sheet: null, allOpen: false, untokOpen: false, live: s.live || route === 'tracking' })),
+  go: route => set(s => ({
+    route, base: MODAL_ROUTES.includes(route) ? (MODAL_ROUTES.includes(s.route) ? s.base : s.route) : route, toast: null, sheet: null, allOpen: false, untokOpen: false, live: s.live || route === 'tracking' })),
   set: p => set(p),
   say: toast => { clearTimeout(timer); set({ toast }); timer = window.setTimeout(() => set({ toast: null }), 2400) },
   reset: () => set({ ...initial }),
