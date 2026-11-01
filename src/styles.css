@@ -289,3 +289,8 @@ kbd { font: 500 12px var(--font); border: 1px solid var(--line); border-bottom-w
 .ai-mark.on { box-shadow: none; background: var(--ai-grad) left bottom / 100% 3px no-repeat; }
 .ai-tip { display: inline-flex; align-items: center; gap: 8px; background: var(--ai-grad); color: #fff; border-radius: 8px; box-shadow: 0 8px 24px rgba(124, 58, 237, .28); }
 .ai-tip .ai-ic { background: #fff; }
+/* Four lanes: a smaller chart, the AI lane in the AI gradient */
+.lanes { grid-template-columns: repeat(4, 1fr); gap: 28px; flex: none; }
+.lane-track { flex: none; height: 46cqh; min-height: 0; }
+.lane-bar.ai { background: var(--ai-grad); }
+.lane p { font-size: 16px; }

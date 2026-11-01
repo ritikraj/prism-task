@@ -1,7 +1,7 @@
 // Act 3: The idea (slides 10–21).
 import type { ReactNode } from 'react'
 import { BeforeAfter, Cards, Counter, Frame, Reveal, Statement, Steps, useStep } from '../deck/blocks'
-import { chain, change, derived, facts, lanes, messages, retire } from '../data/ledgerly'
+import { chain, change, derived, facts, lanes, messages, retire, sellersAtRisk } from '../data/ledgerly'
 
 const discount = facts[0]
 
@@ -177,25 +177,28 @@ export function OneChange() {
   )
 }
 
-export function ThreeLanes() {
+// The four ways a place gets fixed, matching the prototype's change modal. 336 = 456 minus the 120 retired.
+export function FourLanes() {
   const step = useStep()
   const max = lanes.tokens
-  const lane = (at: number, name: string, count: number, unit: string, text: string) => (
+  const lane = (at: number, name: ReactNode, count: number, unit: string, text: string, ai = false) => (
     <div className="lane">
       <div className="eyebrow">{name}</div>
       <div className="lane-track">
-        <div className="lane-bar" style={{ height: step >= at ? `${(count / max) * 100}%` : 0 }} />
+        <div className={`lane-bar ${ai ? 'ai' : ''}`} style={{ height: step >= at ? `${(count / max) * 100}%` : 0 }} />
       </div>
       <Reveal at={at}><div className="lane-count">{count} {unit}</div><p>{text}</p></Reveal>
     </div>
   )
   return (
-    <Frame eyebrow="Three lanes" illustrative>
+    <Frame eyebrow="Four lanes" illustrative>
       <div className="lanes">
-        {lane(1, 'Token', lanes.tokens, 'edits', 'Updates when the owner approves.')}
-        {lane(2, 'Same wording', lanes.groupedMatches, 'matches', 'Grouped. Approve once.')}
-        {lane(3, 'Judgment', lanes.judgment, 'items', 'Read for meaning. Decided by a person.')}
+        {lane(1, 'Token', lanes.tokens, 'places', 'Already updated when Finance confirmed. Nobody reviews them.')}
+        {lane(2, <span className="ai-label"><span className="ai-ic" /><span className="ai-text">Same sentence</span></span>, lanes.groupedMatches, 'places', `AI finds them and writes the new sentence. Approve & Publish once per group, ${lanes.groups} groups.`, true)}
+        {lane(3, 'One by one', lanes.judgment, 'items', 'Read for meaning. Approve & Publish, or send to Product marketing.')}
+        {lane(4, 'Already sent', sellersAtRisk.copies, 'copies', 'In buyer inboxes, so not editable. The seller gets the updated file.')}
       </div>
+      <p className="caption">{chain[1].left} places once the {retire.places} unused ones are retired. Urgency decides the order; the lane decides the work.</p>
     </Frame>
   )
 }

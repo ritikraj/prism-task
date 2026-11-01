@@ -25,7 +25,7 @@ export const slides: SlideDef[] = [
   { id: 'where-it-stops', act: A3, title: 'Where it stops', steps: 4, Component: A3s.WhereItStops },
   { id: 'owner-confirm', act: A3, title: 'The owner confirms', steps: 2, Component: A3s.OwnerConfirm },
   { id: 'one-change', act: A3, title: 'One change', steps: 1, Component: A3s.OneChange },
-  { id: 'three-lanes', act: A3, title: 'Three lanes', steps: 3, Component: A3s.ThreeLanes },
+  { id: 'four-lanes', act: A3, title: 'Four lanes', steps: 4, Component: A3s.FourLanes },
   { id: 'shrink', act: A3, title: 'Shrink the queue', steps: 4, Component: A3s.Shrink },
   { id: 'safe', act: A3, title: 'Safe while it drains', steps: 1, Component: A3s.SafeWhileDrains },
   { id: 'upload-check', act: A3, title: 'Upload check', steps: 2, Component: A3s.UploadCheck },
