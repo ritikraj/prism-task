@@ -226,7 +226,6 @@ export function SafeWhileDrains() {
   const step = useStep()
   return (
     <Frame eyebrow="Safe while it drains">
-      <p className="caption">A seller opens a deck nobody has fixed yet.</p>
       <div className="ex-wrap">
         <div className="ex-stack flat">
           <div className="ex-layer base"><MockBase label="Mock · Ledgerly pricing, slide 4" /></div>
@@ -237,6 +236,7 @@ export function SafeWhileDrains() {
           </div>
         </div>
       </div>
+      <p className="caption">A seller opens a deck nobody has fixed yet.</p>
     </Frame>
   )
 }
