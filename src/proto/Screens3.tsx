@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { change, claimHistory, facts, impactAssets, library, merge, messages, scan, v7, type Part } from '../data/ledgerly'
 import { useProto, notHere, scanSpots, scanLinked, spotsLeft } from './store'
-import { Head } from './ui'
+import { Head, Sheet } from './ui'
 
 const healthClass = (h: string) => (h === 'Current' ? 'ok' : h === 'In review' ? '' : 'warn')
 
@@ -12,6 +12,7 @@ export function Scan() {
   const { scanDone, spotsOff, uptimeOwner, flagged, set, say } = s
   const [open, setOpen] = useState<number | null>(null)
   const [owner, setOwner] = useState('Product')
+  const un = scan.untokenable, video = un.filter(u => u[1].startsWith('Video')).length
   const decide = (i: number, v: 'ok' | 'no') => set({ scanDone: { ...scanDone, [i]: v } })
   const toggleSpot = (i: number, k: number) => {
     const cur = spotsOff[i] ?? []
@@ -68,13 +69,23 @@ export function Scan() {
       </div>
       <div className="p-card">
         <div className="p-row">
-          <div className="p-grow"><b>{scan.untokenable.length} spots in PDFs and video cannot hold tokens.</b><div className="p-muted p-small">Not counted in the {scan.total}. They need a new file or a new recording.</div></div>
-          {flagged ? <span className="p-chip ok">Flagged for replacement</span> : <button className="p-btn" onClick={() => { set({ flagged: true }); say(`${scan.untokenable.length} spots flagged. Their owners get a task.`) }}>Flag for replacement</button>}
+          <div className="p-grow"><b>{un.length} spots in PDFs and video cannot hold tokens.</b>
+            <div className="p-muted p-small">{video} in video, {un.length - video} in PDFs, across {new Set(un.map(u => u[0])).size} assets. Not counted in the {scan.total}. They need a new file or a new recording.</div></div>
+          {flagged && <span className="p-chip ok">Flagged</span>}
+          <button className="p-btn" onClick={() => set({ untokOpen: true })}>View {un.length} spots</button>
         </div>
-        {scan.untokenable.map(([a, where, what]) => (
-          <div key={a + where} className="p-row"><b>{a}</b><span className="p-muted">{where}</span><span className="p-grow p-muted">{what}</span></div>
-        ))}
       </div>
+      {s.untokOpen && (
+        <Sheet title={`${un.length} spots that cannot hold tokens`} sub="Text inside images, scans and recordings. A token cannot reach it." onClose={() => set({ untokOpen: false })}>
+          <div className="p-row p-table-head"><span className="p-grow" />
+            {flagged ? <span className="p-chip ok">Flagged for replacement</span> : <button className="p-btn primary" onClick={() => { set({ flagged: true }); say(`${un.length} spots flagged. Their owners get a task.`) }}>Flag all for replacement</button>}
+          </div>
+          <table className="p-table">
+            <thead><tr><th>Asset</th><th>Where</th><th>What</th></tr></thead>
+            <tbody>{un.map(([a, where, what]) => <tr key={a + where}><td><b>{a}</b></td><td>{where}</td><td className="p-muted">{what}</td></tr>)}</tbody>
+          </table>
+        </Sheet>
+      )}
     </>
   )
 }

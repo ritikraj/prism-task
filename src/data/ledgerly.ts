@@ -187,3 +187,18 @@ export const staleHolders = [
   { seller: 'Tom Becker', copy: 'Norvik ROI one-pager, PDF', status: 'Not yet' },
   { seller: 'Ana Ruiz', copy: 'Clearwater pricing deck, PDF export', status: 'Opened alert' },
 ]
+
+// Home dashboard. Assumed numbers.
+export const dashboard = {
+  assets: 1240,
+  health: [['Current', 1084], ['Outdated', 118], ['Update scheduled', 38]] as [string, number][],
+  weeks: [['Sep 14', 2], ['Sep 21', 1], ['Sep 28', 3], ['Oct 5', 2], ['Oct 12', 4], ['Oct 19', 2], ['Oct 26', 3], ['Nov 2', 2]] as [string, number][],
+  sellersTrend: [12, 9, 14, 11, 8, 63],
+}
+// Earlier changes, already closed (for "View all").
+export const pastChanges: [string, string, string, number][] = [
+  ['Starter price: $27 to $29', 'Single change', 'Oct 1', 188],
+  ['SOC 2 Type II renewed', 'Single change', 'Sep 12', 96],
+  ['SSO on all plans', 'Single change', 'Aug 30', 84],
+  ['Q3 APAC pricing update', 'Batch change', 'Jul 1', 142],
+]

@@ -230,3 +230,31 @@
 .p-table-head .p-card-title { margin: 0; }
 @keyframes p-fade { from { opacity: 0; } }
 @keyframes p-slide { from { transform: translateX(32px); opacity: 0; } }
+
+/* Home: card row + dots, dashboard */
+.p-carousel { display: flex; gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding: 2px; margin: -2px; }
+.p-carousel::-webkit-scrollbar { display: none; }
+.p-carousel > .p-change-card { flex: 0 0 300px; scroll-snap-align: start; }
+.p-change-card h2 { font-size: 15.5px; }
+.p-cdots { display: flex; justify-content: center; gap: 6px; margin-top: 12px; }
+.p-cdots button { width: 6px; height: 6px; padding: 0; border: 0; border-radius: 3px; background: var(--p-line); cursor: pointer; transition: width 150ms, background 150ms; }
+.p-cdots button.on { width: 18px; background: var(--p-accent); }
+.p-dash { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; }
+.p-dash .p-card { display: flex; flex-direction: column; gap: 10px; }
+.p-dash .p-card-title { margin: 0; }
+.p-dash .p-big { font-size: 28px; line-height: 1; }
+.p-hbar, .p-meter { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: var(--p-head); gap: 2px; }
+.p-hbar .h0, .p-legend .h0 { background: var(--p-ok); }
+.p-hbar .h1, .p-legend .h1 { background: var(--p-warn); }
+.p-hbar .h2, .p-legend .h2 { background: var(--p-accent); }
+.p-meter span { background: var(--p-accent); border-radius: 4px; transition: width 300ms; }
+.p-legend { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: var(--p-muted); }
+.p-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; }
+.p-legend b { color: var(--p-ink); font-weight: 500; float: right; }
+.p-chart { width: 100%; height: 64px; display: block; }
+.p-chart rect { fill: var(--p-line); }
+.p-chart rect.on { fill: var(--p-accent); }
+.p-chart.spark { height: 48px; overflow: visible; }
+.p-chart polyline { fill: none; stroke: var(--p-warn); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.p-chart circle { fill: var(--p-warn); }
+.p-axis { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--p-muted); }

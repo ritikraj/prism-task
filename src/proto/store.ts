@@ -91,6 +91,8 @@ type S = {
   scheduled: boolean
   ukScheduled: boolean
   sheet: string | null
+  allOpen: boolean
+  untokOpen: boolean
   draft: boolean
   nudged: boolean
   claim: string
@@ -110,7 +112,7 @@ type S = {
 }
 const initial = {
   route: 'home' as Route, guide: true, toast: null, retired: false, groupsOk: [], excluded: {}, jDone: {}, jIndex: 0,
-  live: false, closed: false, scheduled: false, ukScheduled: false, sheet: null, draft: false, nudged: false,
+  live: false, closed: false, scheduled: false, ukScheduled: false, sheet: null, allOpen: false, untokOpen: false, draft: false, nudged: false,
   claim: 'annual_discount', scanDone: {}, spotsOff: {}, uptimeOwner: null, flagged: false,
   fileScanned: false, fileLinked: false, v6Asked: false, merged: false, notDup: false,
 }
@@ -118,7 +120,7 @@ let timer = 0
 export const useProto = create<S>(set => ({
   ...initial,
   // Jumping to tracking (from the guide) implies the change went live.
-  go: route => set(s => ({ route, toast: null, sheet: null, live: s.live || route === 'tracking' })),
+  go: route => set(s => ({ route, toast: null, sheet: null, allOpen: false, untokOpen: false, live: s.live || route === 'tracking' })),
   set: p => set(p),
   say: toast => { clearTimeout(timer); set({ toast }); timer = window.setTimeout(() => set({ toast: null }), 2400) },
   reset: () => set({ ...initial }),
