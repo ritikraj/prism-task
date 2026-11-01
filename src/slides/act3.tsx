@@ -44,26 +44,6 @@ const MockMedia = () => (
   </>
 )
 
-// One seller-facing slide, reused wherever the deck shows content: headline, discount line, chart, compliance line.
-function PricingSlide({ discount = change.from, banner, label = 'Mock · Ledgerly pricing, slide 4' }: { discount?: ReactNode; banner?: ReactNode; label?: string }) {
-  return (
-    <div className="mock-wrap">
-      <div className="mock-label">{label}</div>
-      <div className="mock-slide pricing">
-      {banner}
-      <div className="ps-body">
-        <div className="ps-text">
-          <h3>Pricing that grows with you</h3>
-          <p className="mock-big">Save {discount} with annual billing.</p>
-          <p className="muted">Built for audited teams. SOC 2 Type II.</p>
-        </div>
-        <PricingChart />
-      </div>
-      </div>
-    </div>
-  )
-}
-
 const Token = ({ name, value }: { name: string; value?: string }) => (
   <span className="token">{`{${name}}`}{value && <b> {value}</b>}</span>
 )
@@ -247,7 +227,16 @@ export function SafeWhileDrains() {
   return (
     <Frame eyebrow="Safe while it drains">
       <p className="caption">A seller opens a deck nobody has fixed yet.</p>
-      <PricingSlide banner={step >= 1 && <div className="outdated">Pricing on this slide is outdated. Current annual discount: {change.to}.</div>} />
+      <div className="ex-wrap">
+        <div className="ex-stack flat">
+          <div className="ex-layer base"><MockBase label="Mock · Ledgerly pricing, slide 4" /></div>
+          <div className="ex-layer"><MockText discount={change.from} /></div>
+          <div className="ex-layer"><MockMedia /></div>
+          <div className="ex-layer" style={{ ['--z' as string]: '2px' }}>
+            {step >= 1 && <div className="outdated">Pricing on this slide is outdated. Current annual discount: {change.to}.</div>}
+          </div>
+        </div>
+      </div>
     </Frame>
   )
 }
