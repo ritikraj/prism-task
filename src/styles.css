@@ -273,3 +273,11 @@ kbd { font: 500 12px var(--font); border: 1px solid var(--line); border-bottom-w
 .claim-table tr.hl td:last-child { border-right: 2px solid var(--ink); }
 @media (prefers-reduced-motion: reduce) { .claim-table td { transition: none; } }
 .claim-table td:not(:first-child) { white-space: nowrap; }
+
+/* slide 13: same card as slide 11; linked claim shows its row on hover */
+.ex-stack.flat .ex-layer { pointer-events: none; }
+.claim-link { position: relative; pointer-events: auto; outline: 1.5px dashed var(--ink); outline-offset: 3px; cursor: help; }
+.claim-pop { position: absolute; left: -4px; top: calc(100% + 14px); z-index: 5; display: none; flex-direction: column; gap: 12px; background: var(--bg); border: 1px solid var(--ink); padding: 14px 16px; font-size: 14px; font-weight: 400; white-space: nowrap; box-shadow: 0 12px 30px rgba(0,0,0,.12); }
+.claim-pop dl { display: grid; grid-template-columns: 64px auto; gap: 6px 16px; margin: 0; }
+.claim-pop dt { color: var(--muted); } .claim-pop dd { margin: 0; }
+.claim-link:hover .claim-pop, .claim-link:focus .claim-pop { display: flex; }

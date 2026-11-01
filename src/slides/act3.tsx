@@ -21,6 +21,29 @@ export function PricingChart({ pct = 20 }: { pct?: number }) {
   )
 }
 
+// The mock pricing slide in slide 11's card: base, text and media. Shared by Anatomy and Getting there.
+const MockBase = ({ label }: { label: string }) => (
+  <>
+    <span className="mock-label">{label}</span>
+    <span className="ex-brand">Ledgerly</span>
+    <div className="ex-foot"><span>Pricing overview v7</span><span>Confidential · 4</span></div>
+  </>
+)
+const MockText = ({ discount }: { discount: ReactNode }) => (
+  <div className="ex-text">
+    <h3>Pricing that grows with you</h3>
+    <p>Starter from <span className="ghost">$29 per seat per month</span>.</p>
+    <p>Save {discount} with annual billing.</p>
+    <p className="muted"><span className="ghost">Built for audited teams.</span> <span className="ghost">SOC 2 Type II</span>.</p>
+  </div>
+)
+const MockMedia = () => (
+  <>
+    <div className="ex-media"><PricingChart /></div>
+    <div className="ex-logos"><span className="eyebrow">Trusted by</span>{['Halden', 'Norvik', 'Clearwater'].map(n => <span key={n} className="ex-logo">{n}</span>)}</div>
+  </>
+)
+
 // One seller-facing slide, reused wherever the deck shows content: headline, discount line, chart, compliance line.
 function PricingSlide({ discount = change.from, banner, label = 'Mock · Ledgerly pricing, slide 4' }: { discount?: ReactNode; banner?: ReactNode; label?: string }) {
   return (
@@ -74,21 +97,9 @@ export function Anatomy() {
     <Frame eyebrow="Anatomy of content">
       <div className="ex-wrap">
         <div className={`ex-stack ${step >= 1 ? 'tilted' : ''}`}>
-          <div className="ex-layer base">
-            <span className="mock-label">Mock · Ledgerly pricing, slide 4</span>
-            <span className="ex-brand">Ledgerly</span>
-            <div className="ex-foot"><span>Pricing overview v7</span><span>Confidential · 4</span></div>
-          </div>
-          {layer(1, 'Text', <div className="ex-text">
-            <h3>Pricing that grows with you</h3>
-            <p>Starter from <span className="ghost">$29 per seat per month</span>.</p>
-            <p>Save <span className="ghost">20%</span> with annual billing.</p>
-            <p className="muted"><span className="ghost">Built for audited teams.</span> <span className="ghost">SOC 2 Type II</span>.</p>
-          </div>)}
-          {layer(2, 'Media', <>
-            <div className="ex-media"><PricingChart /></div>
-            <div className="ex-logos"><span className="eyebrow">Trusted by</span>{['Halden', 'Norvik', 'Clearwater'].map(n => <span key={n} className="ex-logo">{n}</span>)}</div>
-          </>)}
+          <div className="ex-layer base"><MockBase label="Mock · Ledgerly pricing, slide 4" /></div>
+          {layer(1, 'Text', <MockText discount={<span className="ghost">{discount.value}</span>} />)}
+          {layer(2, 'Media', <MockMedia />)}
           {layer(3, 'Claims', <div className="ex-text ex-claims">
             <h3 className="ex-spacer">Pricing that grows with you</h3>
             <p><Token name="starter_price" /></p>
@@ -129,14 +140,34 @@ export function ClaimHome() {
 
 export function GettingThere() {
   const step = useStep()
+  const value = step >= 2 ? (
+    <span className="claim-link" tabIndex={0}>
+      {change.from}
+      <span className="claim-pop" role="tooltip">
+        <Token name={discount.token} />
+        <dl>
+          <dt>Type</dt><dd>Fact</dd>
+          <dt>Value</dt><dd>{discount.value}</dd>
+          <dt>Owner</dt><dd>{discount.owner}</dd>
+          <dt>Source</dt><dd>{discount.source}</dd>
+        </dl>
+      </span>
+    </span>
+  ) : (
+    <span className={`ai-mark ${step >= 1 ? 'on' : ''}`}>
+      {change.from}
+      {step >= 1 && <span className="ai-tip">This is the annual discount. Link it?</span>}
+    </span>
+  )
   return (
     <Frame eyebrow="Getting there">
-      <PricingSlide label="Mock · an existing deck, as it is today" discount={step >= 2 ? <Token name={discount.token} value={change.from} /> : (
-        <span className={`ai-mark ${step >= 1 ? 'on' : ''}`}>
-          {change.from}
-          {step >= 1 && <span className="ai-tip">This is the annual discount. Link it?</span>}
-        </span>
-      )} />
+      <div className="ex-wrap">
+        <div className="ex-stack flat">
+          <div className="ex-layer base"><MockBase label="Mock · an existing deck, as it is today" /></div>
+          <div className="ex-layer" style={{ ['--z' as string]: '1px' }}><MockText discount={value} /></div>
+          <div className="ex-layer"><MockMedia /></div>
+        </div>
+      </div>
       <Reveal at={2}><p className="caption">AI reads the library you already have and builds the claim library. Nothing is rebuilt as a template.</p></Reveal>
     </Frame>
   )
