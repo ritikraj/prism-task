@@ -4,7 +4,7 @@ import { Title, Setup, ProblemMapSlide, Story, Fanout } from './act1'
 import { Solved, StillOpen, Assumptions } from './act2'
 import * as A3s from './act3'
 import Prototype from '../proto/Prototype'
-import { SystemModel, Flow, Measure, Validate, Next } from './act45'
+import { Flow, Measure, Validate, Next } from './act45'
 
 const A1 = 'Act 1: The problem', A2 = 'Act 2: What exists', A3 = 'Act 3: The idea', A4 = 'Act 4: The experience', A5 = 'Act 5: Close'
 
@@ -33,7 +33,6 @@ export const slides: SlideDef[] = [
   { id: 'narrative', act: A3, title: 'When the story changes', steps: 2, Component: A3s.NarrativeChange },
   { id: 'admin-job', act: A3, title: 'How AI changes the admin\'s job', steps: 3, Component: A3s.AdminJob },
   { id: 'principles', act: A3, title: 'Principles', steps: 3, Component: A3s.Principles },
-  { id: 'system-model', act: A4, title: 'System model', steps: 2, Component: SystemModel },
   { id: 'flow', act: A4, title: 'The flow', steps: 6, Component: Flow },
   { id: 'prototype', act: A4, title: 'Prototype', steps: 0, Component: Prototype, prototype: true },
   { id: 'measure', act: A5, title: 'What I would measure', steps: 4, Component: Measure },

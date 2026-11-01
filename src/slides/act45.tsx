@@ -1,33 +1,6 @@
-// Act 4 (slides 22–23) and Act 5: Close (slides 25–27).
+// Act 4 (the flow, the prototype) and Act 5: Close.
 import { Frame, Reveal, Steps, useStep } from '../deck/blocks'
-import { Svg, Node, Line, on } from '../deck/svg'
 import { sellersAtRisk } from '../data/ledgerly'
-
-export function SystemModel() {
-  const step = useStep()
-  return (
-    <Frame eyebrow="System model" title="The data the prototype runs on.">
-      <div className="fill">
-        <Svg w={1600} h={640}>
-          <path d="M1030 330L1220 200M1030 370L1220 480" className="link" />
-          <Node x={900} y={350} w={260} h={110} label={'Claim\n(fact or message)'} strong />
-          <Node x={1360} y={180} w={280} label="Asset" strong={step >= 2} />
-          <Node x={1360} y={500} w={280} h={110} label={'Copy in\ncirculation'} strong={step >= 2} />
-          <g className={`fade${on(step >= 1)}`}>
-            <Node x={150} y={350} w={220} label="Source" strong />
-            <Node x={500} y={350} w={260} label="Change event" strong />
-          </g>
-          <Line d="M260 350H368" show={step >= 1} arrow />
-          <Line d="M630 350H768" show={step >= 1} arrow />
-          <g className={`fade${on(step >= 2)}`}><Node x={900} y={90} w={260} label="Owner approves" strong /></g>
-          <Line d="M900 132V293" show={step >= 2} arrow />
-          <Line d="M1030 320L1218 205" show={step >= 2} arrow className="thick" />
-          <Line d="M1030 380L1218 475" show={step >= 2} arrow className="thick" />
-        </Svg>
-      </div>
-    </Frame>
-  )
-}
 
 const FLOW: [string, string][] = [
   ['Home', 'Changes arrive from their source, sorted by deals at risk.'],
