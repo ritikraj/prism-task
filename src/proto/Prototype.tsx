@@ -180,6 +180,8 @@ function Home() {
       </section>
       <Dashboard />
       <Skeleton />
+      <SkeletonCards />
+      <SkeletonCharts />
     </>
   )
 }
@@ -257,11 +259,34 @@ function Dashboard() {
 
 // Placeholder blocks: the rest of a real home page, not designed here.
 function Skeleton() {
-  const bar = (w: string, h = 10) => <span className="p-skel" style={{ width: w, height: h }} />
   return (
     <section className="p-skel-grid" aria-hidden="true">
       <div className="p-card">{bar('30%', 12)}{[92, 78, 85, 70, 88].map((w, i) => <div key={i} className="p-skel-row">{bar('28px', 28)}<span className="p-grow">{bar(`${w}%`)}{bar(`${w - 30}%`, 8)}</span>{bar('48px')}</div>)}</div>
       <div className="p-card">{bar('40%', 12)}<span className="p-skel" style={{ height: 120 }} />{bar('90%')}{bar('70%')}{bar('80%')}</div>
+    </section>
+  )
+}
+
+const bar = (w: string | number, h = 10) => <span className="p-skel" style={{ width: w, height: h }} />
+function SkeletonCards() {
+  return (
+    <section className="p-sec" aria-hidden="true">
+      {bar(140, 10)}
+      <div className="p-skel-cards">{[0, 1, 2].map(i => (
+        <div key={i} className="p-card">{bar(64, 18)}{bar('80%', 14)}{bar('95%')}{bar('60%')}<div className="p-skel-row">{bar(48, 18)}{bar(48, 18)}{bar(48, 18)}</div></div>
+      ))}</div>
+    </section>
+  )
+}
+function SkeletonCharts() {
+  const h = [40, 62, 48, 80, 56, 92, 70, 84, 60, 74, 50, 88]
+  return (
+    <section className="p-sec" aria-hidden="true">
+      {bar(160, 10)}
+      <div className="p-skel-grid">
+        <div className="p-card">{bar('25%', 12)}<div className="p-skel-bars">{h.map((v, i) => <span key={i} className="p-skel" style={{ height: `${v}%` }} />)}</div></div>
+        <div className="p-card">{bar('45%', 12)}<span className="p-skel p-skel-ring" />{bar('80%')}{bar('65%')}</div>
+      </div>
     </section>
   )
 }

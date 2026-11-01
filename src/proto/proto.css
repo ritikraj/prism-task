@@ -311,4 +311,10 @@
 .p-sec > .p-card-title { margin: 0; }
 .p-sec .p-cdots { margin-top: -2px; }
 .p-top { margin-top: 4px; padding-left: 10px; } /* centre lines up with the logo mark (30px down) */
-.p-sec + .p-sec, .p-sec + .p-skel-grid { margin-top: 18px; } /* 36px between Home sections, double the page gap */
+.p-container > section + section { margin-top: 18px; } /* 36px between Home sections, double the page gap */
+.p-skel-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.p-skel-cards .p-card { display: flex; flex-direction: column; gap: 12px; }
+.p-skel-bars { height: 140px; display: flex; align-items: flex-end; gap: 8px; }
+.p-skel-bars .p-skel { flex: 1; }
+.p-skel-ring { width: 120px; height: 120px; border-radius: 50%; background: none; border: 18px solid var(--p-head); align-self: center; }
+@container (max-width: 760px) { .p-skel-cards { grid-template-columns: 1fr 1fr; } }
