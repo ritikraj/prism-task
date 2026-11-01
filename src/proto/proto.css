@@ -304,3 +304,9 @@
 .p-page.on { border-color: var(--p-line); background: var(--p-surface); font-weight: 600; }
 .p-sheet-head.solo { padding-bottom: 20px; }
 .p-sheet-head .p-head { align-items: flex-start; }
+
+/* Home sections: same gap between a section title and its content */
+.p-sec { display: flex; flex-direction: column; gap: 14px; }
+.p-sec > .p-row { padding: 0; margin: 0; }
+.p-sec > .p-card-title { margin: 0; }
+.p-sec .p-cdots { margin-top: -2px; }

@@ -174,7 +174,7 @@ function Home() {
   return (
     <>
       <Head title={`Good morning, ${admin.name.split(' ')[0]}`} sub={`${company.name} content, ${today}.`} />
-      <section>
+      <section className="p-sec">
         <div className="p-row p-table-head"><span className="p-card-title p-grow">Needs attention</span><button className="p-link" onClick={() => set({ allOpen: true })}>View all changes</button></div>
         <Carousel>{cards}</Carousel>
       </section>
@@ -220,7 +220,7 @@ function Dashboard() {
   const max = Math.max(...weeks.map(w => w[1])), top = Math.max(...t)
   const line = t.map((v, i) => `${(i * 160) / (t.length - 1)},${44 - (v / top) * 40}`).join(' ')
   return (
-    <section>
+    <section className="p-sec">
       <div className="p-card-title">Library at a glance</div>
       <div className="p-dash">
         <div className="p-card">
