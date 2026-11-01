@@ -310,3 +310,4 @@
 .p-sec > .p-row { padding: 0; margin: 0; }
 .p-sec > .p-card-title { margin: 0; }
 .p-sec .p-cdots { margin-top: -2px; }
+.p-top { margin-top: 4px; padding-left: 10px; } /* centre lines up with the logo mark (30px down) */
