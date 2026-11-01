@@ -106,7 +106,7 @@ export function Anatomy() {
 export function ClaimHome() {
   const step = useStep()
   const rows: [string, string, string, string, string][] = [
-    ...facts.filter(f => !['pro_price_emea_*', 'sso_support'].includes(f.token)).map(f => [f.token, 'Fact', f.value, f.owner, f.source] as [string, string, string, string, string]),
+    ...['starter_price', 'rivalset_price', 'annual_discount', 'soc2_status'].map(t => facts.find(f => f.token === t)!).map(f => [f.token, 'Fact', f.value, f.owner, f.source] as [string, string, string, string, string]),
     ...messages.map(m => [m.text, 'Message', '', m.owner, m.source] as [string, string, string, string, string]),
   ]
   return (
