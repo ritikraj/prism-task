@@ -247,8 +247,9 @@ kbd { font: 500 12px var(--font); border: 1px solid var(--line); border-bottom-w
 .msg-diff s { color: var(--faint); font-weight: 400; }
 
 /* mock labels sit outside, above their card */
-.mock-wrap { width: 100%; max-width: 920px; display: flex; flex-direction: column; gap: 10px; }
+.mock-wrap { flex: none; width: 100%; max-width: 920px; display: flex; flex-direction: column; gap: 10px; }
 .mock-wrap .mock-label { position: static; }
 .ex-layer.base .mock-label { top: -30px; left: 0; }
 .mock-panel { padding-top: 28px; margin-top: 30px; }
 .mock-panel .mock-label { top: -26px; left: 0; }
+.mock-slide.pricing > .outdated { flex: none; }
