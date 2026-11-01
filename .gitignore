@@ -1,0 +1,5 @@
+node_modules
+dist
+.firebase
+.claude
+.DS_Store
