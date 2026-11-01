@@ -68,7 +68,6 @@ export default function Prototype() {
             <span className="p-grow" /><span className="p-muted p-small">{company.name} · {today}</span>
           </header>
           <div className="p-panel">
-            {section === 'library' && <LibraryNav />}
             <main className="p-main"><Screen /></main>
           </div>
         </div>
@@ -96,27 +95,6 @@ export default function Prototype() {
       )}
       {toast && <div className="p-toast">{toast}</div>}
     </div>
-  )
-}
-
-// Inner navigation for the library.
-function LibraryNav() {
-  const { route, go, merged } = useProto()
-  const s = useProto()
-  const items: [Route, string, string][] = [
-    ['library', 'All content', '1,240'], ['scan', 'Scan results', `${spotsLeft(s)} left`], ['merge', 'Duplicates', merged ? '0' : '1'],
-  ]
-  return (
-    <aside className="p-sub">
-      <div className="p-sub-title">Library</div>
-      <div className="p-sub-list">
-        {items.map(([r, label, meta]) => (
-          <button key={r} className={`p-sub-item ${route === r || (r === 'library' && route === 'asset') ? 'on' : ''}`} onClick={() => go(r)}>
-            <span className="p-grow">{label}</span><span className="p-muted p-small">{meta}</span>
-          </button>
-        ))}
-      </div>
-    </aside>
   )
 }
 

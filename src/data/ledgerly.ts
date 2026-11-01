@@ -135,19 +135,40 @@ export const merge = {
 }
 
 // Content library. Health: Current, N outdated claims, or In review.
-export type LibAsset = { id: string; name: string; type: string; team: string; creator: string; tag: string; health: string; updated: string }
+export type LibAsset = { id: string; name: string; type: string; team: string; creator: string; tags: string[]; health: string; updated: string }
 export const library: LibAsset[] = [
-  { id: 'v7', name: 'Ledgerly pricing overview v7', type: 'Deck', team: 'Enablement', creator: 'Meera Iyer', tag: 'Pricing', health: '2 outdated claims', updated: 'Oct 14' },
-  { id: 'halden', name: 'Halden renewal proposal', type: 'Doc', team: 'Sales', creator: 'Priya Nair', tag: 'Proposals', health: '1 outdated claim', updated: 'Oct 12' },
-  { id: 'clear', name: 'Clearwater pricing deck', type: 'Deck', team: 'Sales', creator: 'Ana Ruiz', tag: 'Pricing', health: 'In review', updated: 'Oct 30' },
-  { id: 'norvik', name: 'Norvik ROI one-pager', type: 'PDF', team: 'Product marketing', creator: 'Jonas Weber', tag: 'ROI', health: '1 outdated claim', updated: 'Oct 9' },
-  { id: 'faq', name: 'Annual billing FAQ', type: 'Doc', team: 'Enablement', creator: 'Meera Iyer', tag: 'Pricing', health: '3 outdated claims', updated: 'Sep 22' },
-  { id: 'web', name: 'Q3 customer webinar', type: 'Video', team: 'Product marketing', creator: 'Jonas Weber', tag: 'Webinars', health: '1 outdated claim', updated: 'Sep 18' },
-  { id: 'sec', name: 'Security overview', type: 'Deck', team: 'Security', creator: 'Lena Park', tag: 'Compliance', health: 'Current', updated: 'Oct 21' },
-  { id: 'rival', name: 'Rivalset battlecard', type: 'Doc', team: 'Product marketing', creator: 'Jonas Weber', tag: 'Competitive', health: 'Current', updated: 'Oct 20' },
-  { id: 'onb', name: 'Onboarding deck', type: 'Deck', team: 'Enablement', creator: 'Meera Iyer', tag: 'Onboarding', health: 'Current', updated: 'Aug 30' },
-  { id: 'starter', name: 'Starter plan one-pager', type: 'PDF', team: 'Product marketing', creator: 'Jonas Weber', tag: 'Pricing', health: 'Current', updated: 'Oct 3' },
+  { id: 'v7', name: 'Ledgerly pricing overview v7', type: 'Deck', team: 'Enablement', creator: 'Meera Iyer', tags: ['Pricing', 'Annual billing'], health: '2 outdated claims', updated: 'Oct 14' },
+  { id: 'halden', name: 'Halden renewal proposal', type: 'Doc', team: 'Sales', creator: 'Priya Nair', tags: ['Proposals', 'Renewals', 'NA'], health: '1 outdated claim', updated: 'Oct 12' },
+  { id: 'clear', name: 'Clearwater pricing deck', type: 'Deck', team: 'Sales', creator: 'Ana Ruiz', tags: ['Pricing', 'Deal room'], health: 'In review', updated: 'Oct 30' },
+  { id: 'norvik', name: 'Norvik ROI one-pager', type: 'PDF', team: 'Product marketing', creator: 'Jonas Weber', tags: ['ROI', 'Customer story'], health: '1 outdated claim', updated: 'Oct 9' },
+  { id: 'faq', name: 'Annual billing FAQ', type: 'Doc', team: 'Enablement', creator: 'Meera Iyer', tags: ['Pricing', 'Annual billing', 'FAQ'], health: '3 outdated claims', updated: 'Sep 22' },
+  { id: 'web', name: 'Q3 customer webinar', type: 'Video', team: 'Product marketing', creator: 'Jonas Weber', tags: ['Webinars', 'Pricing'], health: '1 outdated claim', updated: 'Sep 18' },
+  { id: 'sec', name: 'Security overview', type: 'Deck', team: 'Security', creator: 'Lena Park', tags: ['Compliance', 'Security'], health: 'Current', updated: 'Oct 21' },
+  { id: 'rival', name: 'Rivalset battlecard', type: 'Doc', team: 'Product marketing', creator: 'Jonas Weber', tags: ['Competitive', 'Rivalset'], health: 'Current', updated: 'Oct 20' },
+  { id: 'onb', name: 'Onboarding deck', type: 'Deck', team: 'Enablement', creator: 'Meera Iyer', tags: ['Onboarding', 'New hires'], health: 'Current', updated: 'Aug 30' },
+  { id: 'starter', name: 'Starter plan one-pager', type: 'PDF', team: 'Product marketing', creator: 'Jonas Weber', tags: ['Pricing', 'Starter'], health: 'Current', updated: 'Oct 3' },
 ]
+
+// 50 more assets so the library reads like a real one. Not clickable.
+const MORE = [
+  'Mid-market proposal template', 'Enterprise proposal template', 'Renewal email template', 'Partner pricing guide', 'Discovery call guide',
+  'Objection handling guide', 'Halden case study', 'Norvik case study', 'Clearwater case study', 'Product tour script',
+  'Pricing calculator', 'Integrations overview', 'Security questionnaire answers', 'Data processing addendum', 'Implementation plan template',
+  'QBR deck template', 'Customer success playbook', 'Champion kit', 'Mobile app one-pager', 'API overview',
+  'Payroll module one-pager', 'Expense module datasheet', 'Invoicing demo script', 'Cold email sequence', 'LinkedIn outreach scripts',
+]
+const VARIANT = [' (EMEA)', ' (India)', ' v2', ' short version', ' (NA)']
+const TEAMS: [string, string][] = [['Sales', 'Ana Ruiz'], ['Enablement', 'Meera Iyer'], ['Product marketing', 'Jonas Weber'], ['Customer success', 'Sam Okafor'], ['Security', 'Lena Park'], ['Sales', 'Priya Nair']]
+const TAGS = ['Pricing', 'Proposals', 'Templates', 'Case study', 'Discovery', 'Competitive', 'Renewals', 'Product', 'EMEA', 'India', 'Onboarding', 'Security']
+const DATES = ['Oct 29', 'Oct 24', 'Oct 17', 'Oct 8', 'Sep 30', 'Sep 15', 'Aug 27', 'Aug 11', 'Jul 22']
+library.push(...Array.from({ length: 50 }, (_, i): LibAsset => {
+  const [team, creator] = TEAMS[i % TEAMS.length]
+  return {
+    id: `m${i}`, name: MORE[i % 25] + (i < 25 ? '' : VARIANT[i % 5]), type: ['Deck', 'Doc', 'PDF', 'Doc', 'Deck', 'Video'][i % 6], team, creator,
+    tags: [TAGS[i % 12], TAGS[(i * 5 + 3) % 12], TAGS[(i * 7 + 1) % 12]].slice(0, 1 + (i % 3)).filter((t, k, a) => a.indexOf(t) === k),
+    health: i % 9 === 4 ? '1 outdated claim' : i % 7 === 3 ? 'In review' : 'Current', updated: DATES[i % DATES.length],
+  }
+}))
 
 // Asset detail: pricing overview v7. 4 tokens, 2 plain text matches.
 export type Part = string | { token: string; value: string } | { match: string; token: string; outdated?: boolean }

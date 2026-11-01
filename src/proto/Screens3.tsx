@@ -1,10 +1,11 @@
 // Phase 3 screens: scan results, duplicate merge, claim library + detail, content library + asset detail.
 import { useState } from 'react'
-import { change, claimHistory, facts, impactAssets, library, merge, messages, scan, v7, type Part } from '../data/ledgerly'
+import { change, claimHistory, facts, impactAssets, library, merge, messages, scan, v7, type LibAsset, type Part } from '../data/ledgerly'
 import { useProto, notHere, scanSpots, scanLinked, spotsLeft } from './store'
-import { Head, Sheet } from './ui'
+import { Dropdown, Head, Sheet } from './ui'
 
-const healthClass = (h: string) => (h === 'Current' ? 'ok' : h === 'In review' ? '' : 'warn')
+const healthClass = (h: string) => (h === 'Current' ? 'ok' : h === 'In review' ? 'review' : 'warn')
+const healthRank = (h: string) => (h === 'Current' ? 2 : h === 'In review' ? 1 : 0)
 
 // Scan results (Card C): plain text that could become tokens.
 export function Scan() {
@@ -203,38 +204,44 @@ export function Claim() {
   )
 }
 
-// Content library with filters and health badges.
+// Content library: custom filters, real tags, health as a dot plus plain text. Sorted by health.
+type Filter = 'type' | 'team' | 'creator' | 'tag'
 export function Library() {
   const { go, merged } = useProto()
-  const [f, setF] = useState({ type: 'All', team: 'All', creator: 'All', tag: 'All' })
-  const opts = (k: keyof typeof f) => ['All', ...Array.from(new Set(library.map(a => a[k])))]
-  const rows = library.filter(a => (Object.keys(f) as (keyof typeof f)[]).every(k => f[k] === 'All' || a[k] === f[k]))
+  const [f, setF] = useState<Record<Filter, string>>({ type: 'All', team: 'All', creator: 'All', tag: 'All' })
+  const keys = Object.keys(f) as Filter[]
+  const values = (a: LibAsset, k: Filter) => (k === 'tag' ? a.tags : [a[k]])
+  const opts = (k: Filter) => ['All', ...Array.from(new Set(library.flatMap(a => values(a, k)))).sort()]
+  const rows = library.filter(a => keys.every(k => f[k] === 'All' || values(a, k).includes(f[k]))).sort((x, y) => healthRank(x.health) - healthRank(y.health))
+  const any = keys.some(k => f[k] !== 'All')
   return (
     <>
-      <Head title="All content" sub={`${library.length} of 1,240 assets shown. Sorted by health.`}>
+      <Head title="All content" sub={`${rows.length} of 1,240 assets shown. Sorted by health.`}>
         <button className="p-btn" onClick={notHere}>Upload</button>
       </Head>
       <div className="p-filters">
-        {(Object.keys(f) as (keyof typeof f)[]).map(k => (
-          <label key={k} className="p-small p-muted">{k[0].toUpperCase() + k.slice(1)}
-            <select className="p-select" value={f[k]} onChange={e => setF({ ...f, [k]: e.target.value })}>{opts(k).map(o => <option key={o}>{o}</option>)}</select>
-          </label>
-        ))}
+        {keys.map(k => <Dropdown key={k} label={k[0].toUpperCase() + k.slice(1)} value={f[k]} options={opts(k)} onChange={v => setF({ ...f, [k]: v })} />)}
+        {any && <button className="p-link" onClick={() => setF({ type: 'All', team: 'All', creator: 'All', tag: 'All' })}>Clear filters</button>}
       </div>
       <table className="p-table">
-        <thead><tr><th>Asset</th><th>Type</th><th>Team</th><th>Creator</th><th>Tag</th><th>Health</th><th>Updated</th></tr></thead>
-        <tbody>{rows.map(a => (
-          <tr key={a.id} onClick={() => (a.id === 'v7' ? go('asset') : notHere())}>
-            <td><b>{a.name}</b>{a.id === 'v7' && <span className="p-chip">{merged ? '3 linked versions' : '1 of 14 versions'}</span>}</td>
-            <td>{a.type}</td><td>{a.team}</td><td>{a.creator}</td><td>{a.tag}</td>
-            <td><span className={`p-chip ${healthClass(a.health)}`}>{a.health}</span></td><td className="p-muted">{a.updated}</td>
-          </tr>
-        ))}</tbody>
+        <thead><tr><th>Asset</th><th>Type</th><th>Team</th><th>Creator</th><th>Tags</th><th>Health</th><th>Updated</th></tr></thead>
+        <tbody>{rows.map(a => {
+          const live = DETAIL.includes(a.id)
+          return (
+            <tr key={a.id} className={live ? '' : 'static'} onClick={live ? () => (a.id === 'v7' ? go('asset') : notHere()) : undefined}>
+              <td><b>{a.name}</b>{a.id === 'v7' && <span className="p-chip">{merged ? '3 linked versions' : '1 of 14 versions'}</span>}</td>
+              <td>{a.type}</td><td>{a.team}</td><td>{a.creator}</td>
+              <td><span className="p-tags">{a.tags.map(t => <span key={t} className="p-tag">{t}</span>)}</span></td>
+              <td><span className="p-health"><i className={healthClass(a.health)} />{a.health}</span></td><td className="p-muted">{a.updated}</td>
+            </tr>
+          )
+        })}</tbody>
       </table>
       {rows.length === 0 && <p className="p-muted">No assets match these filters.</p>}
     </>
   )
 }
+const DETAIL = ['v7', 'halden', 'clear', 'norvik', 'faq', 'web', 'sec', 'rival', 'onb', 'starter']
 
 // Asset detail: claims marked in place, copies, scan this file.
 export function Asset() {

@@ -258,3 +258,25 @@
 .p-chart polyline { fill: none; stroke: var(--p-warn); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
 .p-chart circle { fill: var(--p-warn); }
 .p-axis { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--p-muted); }
+
+/* Library: custom dropdown, tags, health dot */
+.p-filters { align-items: center; gap: 8px; }
+.p-dd { position: relative; }
+.p-dd-btn { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border: 1px solid var(--p-line); border-radius: 8px; background: var(--p-surface); color: var(--p-ink); font-size: 13px; cursor: pointer; }
+.p-dd-btn:hover, .p-dd-btn[aria-expanded="true"] { border-color: var(--p-muted); }
+.p-dd-btn.set { border-color: var(--p-accent); background: var(--p-accent-soft); }
+.p-dd-btn svg { color: var(--p-muted); }
+.p-dd-menu { position: absolute; top: calc(100% + 4px); left: 0; z-index: 12; min-width: 200px; max-height: 280px; overflow-y: auto; padding: 4px; display: flex; flex-direction: column;
+  background: var(--p-surface); border: 1px solid var(--p-line); border-radius: 10px; box-shadow: var(--p-shadow), 0 8px 24px rgba(0, 0, 0, .12); }
+.p-dd-menu button { display: flex; align-items: center; gap: 8px; text-align: left; border: 0; background: none; color: var(--p-ink); padding: 7px 10px; border-radius: 6px; font-size: 13px; cursor: pointer; }
+.p-dd-menu button:hover { background: var(--p-bg); }
+.p-dd-menu button.on { color: var(--p-accent); font-weight: 500; }
+.p-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.p-tag { font-size: 12px; padding: 2px 7px; border-radius: 4px; background: var(--p-head); color: var(--p-ink); white-space: nowrap; }
+.p-health { display: inline-flex; align-items: center; gap: 8px; color: var(--p-ink); white-space: nowrap; }
+.p-health i { width: 7px; height: 7px; border-radius: 50%; flex: none; background: var(--p-muted); }
+.p-health i.ok { background: var(--p-ok); }
+.p-health i.warn { background: var(--p-warn); }
+.p-health i.review { background: var(--p-accent); }
+.p-table tr.static { cursor: default; }
+.p-table tr.static:hover td { background: none; }
