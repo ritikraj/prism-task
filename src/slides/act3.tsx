@@ -74,12 +74,26 @@ export function Anatomy() {
     <Frame eyebrow="Anatomy of content">
       <div className="ex-wrap">
         <div className={`ex-stack ${step >= 1 ? 'tilted' : ''}`}>
-          <div className="ex-layer base"><span className="mock-label">Mock · Ledgerly pricing, slide 4</span></div>
-          {layer(1, 'Text', <div className="ex-text"><h3>Pricing that grows with you</h3><p>Save <span className="ghost">20%</span> with annual billing.</p><p className="muted"><span className="ghost">Built for audited teams.</span> SOC 2 Type II.</p></div>)}
-          {layer(2, 'Media', <div className="ex-media"><PricingChart /></div>)}
-          {layer(3, 'Claims', <div className="ex-claims">
-            <span className="claim-fact"><Token name={discount.token} /><span className="hidden-val">{discount.value}</span></span>
-            <span className="claim-msg">message: built for audited teams</span>
+          <div className="ex-layer base">
+            <span className="mock-label">Mock · Ledgerly pricing, slide 4</span>
+            <span className="ex-brand">Ledgerly</span>
+            <div className="ex-foot"><span>Pricing overview v7</span><span>Confidential · 4</span></div>
+          </div>
+          {layer(1, 'Text', <div className="ex-text">
+            <h3>Pricing that grows with you</h3>
+            <p>Starter from <span className="ghost">$29 per seat per month</span>.</p>
+            <p>Save <span className="ghost">20%</span> with annual billing.</p>
+            <p className="muted"><span className="ghost">Built for audited teams.</span> <span className="ghost">SOC 2 Type II</span>.</p>
+          </div>)}
+          {layer(2, 'Media', <>
+            <div className="ex-media"><PricingChart /></div>
+            <div className="ex-logos"><span className="eyebrow">Trusted by</span>{['Halden', 'Norvik', 'Clearwater'].map(n => <span key={n} className="ex-logo">{n}</span>)}</div>
+          </>)}
+          {layer(3, 'Claims', <div className="ex-text ex-claims">
+            <h3 className="ex-spacer">Pricing that grows with you</h3>
+            <p><Token name="starter_price" /></p>
+            <p><span className="claim-fact"><Token name={discount.token} /><span className="hidden-val">{discount.value}</span></span></p>
+            <p className="ex-claim-row"><span className="claim-msg">message: built for audited teams</span><Token name="soc2_status" /></p>
           </div>)}
         </div>
       </div>
