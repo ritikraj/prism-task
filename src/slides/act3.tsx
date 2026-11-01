@@ -212,8 +212,10 @@ export function Shrink() {
         <ol className="chain">
           {chain.slice(1).map((c, i) => (
             <Reveal key={i} as="li" at={i + 1}>
-              <span>{c.move}</span><span className="muted">−{c.removes}</span><b>{c.left}</b>
+              {i === 2 ? <span className="ai-label"><span className="ai-ic" /><span className="ai-text">{c.move}</span></span> : <span>{c.move}</span>}
+              <span className="muted">−{c.removes}</span><b>{c.left}</b>
               {i === 0 && <span className="chain-why">{retire.places} places in {retire.assets} assets. Why each goes: not opened in 6 months, in no deal room, or a newer version exists. Owners can object for 14 days.</span>}
+              {i === 2 && <span className="chain-why">AI finds the discount written as plain text, proposes the new sentence, and groups identical ones. You approve each group once.</span>}
             </Reveal>
           ))}
         </ol>
