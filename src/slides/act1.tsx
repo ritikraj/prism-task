@@ -120,7 +120,7 @@ export function Fanout() {
       <div className="fill">
         <Svg w={1800} h={700}>
           <rect x={380} y={60} width={840} height={580} className="frame-rect" />
-          <text x={404} y={100} className="svg-eyebrow">LIBRARY</text>
+          <text x={404} y={618} className="svg-eyebrow">LIBRARY</text>
           {inside.map(([x, y, l]) => (
             <g key={l}>
               <Line d={`M330 350L${x - 110} ${y}`} show={step >= 1} arrow />

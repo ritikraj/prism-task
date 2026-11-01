@@ -25,14 +25,16 @@ export function PricingChart({ pct = 20 }: { pct?: number }) {
 function PricingSlide({ discount = change.from, banner, label = 'Mock · Ledgerly pricing, slide 4' }: { discount?: ReactNode; banner?: ReactNode; label?: string }) {
   return (
     <div className="mock-slide pricing">
-      <div className="mock-label">{label}</div>
       {banner}
-      <div className="ps-text">
-        <h3>Pricing that grows with you</h3>
-        <p className="mock-big">Save {discount} with annual billing.</p>
-        <p className="muted">Built for audited teams. SOC 2 Type II.</p>
+      <div className="mock-label">{label}</div>
+      <div className="ps-body">
+        <div className="ps-text">
+          <h3>Pricing that grows with you</h3>
+          <p className="mock-big">Save {discount} with annual billing.</p>
+          <p className="muted">Built for audited teams. SOC 2 Type II.</p>
+        </div>
+        <PricingChart />
       </div>
-      <PricingChart />
     </div>
   )
 }
