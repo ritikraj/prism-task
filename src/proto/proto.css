@@ -311,3 +311,4 @@
 .p-sec > .p-card-title { margin: 0; }
 .p-sec .p-cdots { margin-top: -2px; }
 .p-top { margin-top: 4px; padding-left: 10px; } /* centre lines up with the logo mark (30px down) */
+.p-sec + .p-sec, .p-sec + .p-skel-grid { margin-top: 18px; } /* 36px between Home sections, double the page gap */
