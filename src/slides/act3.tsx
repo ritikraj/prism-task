@@ -156,7 +156,7 @@ export function GettingThere() {
   ) : (
     <span className={`ai-mark ${step >= 1 ? 'on' : ''}`}>
       {change.from}
-      {step >= 1 && <span className="ai-tip">This is the annual discount. Link it?</span>}
+      {step >= 1 && <span className="ai-tip"><span className="ai-ic" />This is the annual discount. Link it?</span>}
     </span>
   )
   return (
@@ -168,7 +168,7 @@ export function GettingThere() {
           <div className="ex-layer"><MockMedia /></div>
         </div>
       </div>
-      <Reveal at={2}><p className="caption">AI reads the library you already have and builds the claim library. Nothing is rebuilt as a template.</p></Reveal>
+      <Reveal at={2}><p className="caption"><span className="ai-ic" /> AI reads the library you already have and builds the claim library. Nothing is rebuilt as a template.</p></Reveal>
     </Frame>
   )
 }
@@ -311,7 +311,7 @@ export function UploadCheck() {
     <Frame eyebrow="Upload check" title="New files can't bring old claims back.">
       <div className="mock-panel wide">
         <div className="mock-label">Mock · uploading Q4 partner deck.pptx</div>
-        <div className="mp-head"><span>Checked 24 slides.</span><Reveal at={1} as="span"><b>3 claims found.</b></Reveal></div>
+        <div className="mp-head"><span>Checked 24 slides.</span><Reveal at={1} as="span"><b className="ai-label"><span className="ai-ic" /><span className="ai-text">3 claims found.</span></b></Reveal></div>
         {rows.map(([where, text, verdict, act], i) => (
           <Reveal key={where} at={1} className={`mp-row ${i === 0 ? 'hot' : ''}`}>
             <span className="muted">{where}</span><span>{text}</span><span className={i === 0 ? '' : 'muted'}>{verdict}</span><span className="mp-btn">{act}</span>
@@ -340,7 +340,7 @@ export function NarrativeChange() {
         </div>
         <div>
           <Reveal at={1}>
-            <div className="eyebrow">AI proposes, place by place</div>
+            <div className="eyebrow ai-label"><span className="ai-ic" /><span className="ai-text">AI proposes, place by place</span></div>
             <div className="msg-diff"><s>Pricing that grows with you</s><span>Built for audited teams</span></div>
             <p className="caption">Headline of the pricing overview, slide 4.</p>
           </Reveal>

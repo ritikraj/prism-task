@@ -2,11 +2,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap');
 
 :root {
-  --bg: #ffffff; --ink: #0a0a0a; --muted: #737373; --faint: #a3a3a3; --line: #e0e0e0; --hover: #f5f5f5; --selected: #fafafa;
+  --bg: #ffffff; --ink: #0a0a0a; --muted: #737373; --faint: #a3a3a3; --line: #e0e0e0; --ai-grad: linear-gradient(120deg, #6d28d9 0%, #c026d3 50%, #f26a21 100%); --hover: #f5f5f5; --selected: #fafafa;
   --font: Geist, -apple-system, system-ui, 'Segoe UI', Helvetica, Arial, sans-serif;
   color-scheme: light;
 }
-:root[data-theme="dark"] { --bg: #0a0a0a; --ink: #fafafa; --muted: #a1a1a1; --faint: #6b6b6b; --line: #383838; --hover: #171717; --selected: #111111; color-scheme: dark; }
+:root[data-theme="dark"] { --bg: #0a0a0a; --ink: #fafafa; --muted: #a1a1a1; --faint: #6b6b6b; --line: #383838; --ai-grad: linear-gradient(120deg, #8b5cf6 0%, #d946ef 50%, #fb7c3c 100%); --hover: #171717; --selected: #111111; color-scheme: dark; }
 
 * { box-sizing: border-box; }
 html, body, #root { margin: 0; height: 100%; }
@@ -281,3 +281,11 @@ kbd { font: 500 12px var(--font); border: 1px solid var(--line); border-bottom-w
 .claim-pop dl { display: grid; grid-template-columns: 64px auto; gap: 6px 16px; margin: 0; }
 .claim-pop dt { color: var(--muted); } .claim-pop dd { margin: 0; }
 .claim-link:hover .claim-pop, .claim-link:focus .claim-pop { display: flex; }
+
+/* AI is the only colour in the deck: one gradient + a sparkle, in both themes */
+.ai-ic { display: inline-block; width: 1em; height: 1em; flex: none; vertical-align: -.12em; background: var(--ai-grad); -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M11 2l2.3 6.7L20 11l-6.7 2.3L11 20l-2.3-6.7L2 11l6.7-2.3z M19 14.5l1 2.5 2.5 1-2.5 1-1 2.5-1-2.5-2.5-1 2.5-1z'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M11 2l2.3 6.7L20 11l-6.7 2.3L11 20l-2.3-6.7L2 11l6.7-2.3z M19 14.5l1 2.5 2.5 1-2.5 1-1 2.5-1-2.5-2.5-1 2.5-1z'/%3E%3C/svg%3E") center / contain no-repeat; }
+.ai-text { background: var(--ai-grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.ai-label { display: inline-flex; align-items: center; gap: 6px; }
+.ai-mark.on { box-shadow: none; background: var(--ai-grad) left bottom / 100% 3px no-repeat; }
+.ai-tip { display: inline-flex; align-items: center; gap: 8px; background: var(--ai-grad); color: #fff; border-radius: 8px; box-shadow: 0 8px 24px rgba(124, 58, 237, .28); }
+.ai-tip .ai-ic { background: #fff; }

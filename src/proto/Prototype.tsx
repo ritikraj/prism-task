@@ -171,7 +171,7 @@ function Home() {
         )}
         <article className="p-change-card" onClick={() => go('scan')}>
           <div className="p-card-top"><span className="p-chip">Scan result</span><span className="p-grow" />{Object.keys(scanDone).length > 0 && <span className="p-chip">In progress</span>}</div>
-          <h2>AI found {scan.total} spots that could become tokens</h2>
+          <h2><span className="ai-ic" /> AI found {scan.total} spots that could become tokens</h2>
           <p className="p-muted p-small">Plain text that matches a fact. Once linked, the next change updates them by itself.</p>
         </article>
         <article className="p-change-card" onClick={() => go('merge')}>
@@ -336,7 +336,7 @@ function Review() {
               <Conf c={j.confidence} /><span className="p-chip">Suggested: {j.route}</span>
             </div>
             <div className="p-diff big"><s>{j.old}</s><span>{j.next}</span></div>
-            {j.working && <div className="p-working"><span className="p-small p-muted">How AI got here</span>{j.working}</div>}
+            {j.working && <div className="p-working"><span className="p-small ai-label"><span className="ai-ic" /><span className="ai-text">How AI got here</span></span>{j.working}</div>}
             <div className="p-actions">
               {jDone[j.id] ? <span className="p-chip ok">{jDone[j.id] === 'ok' ? 'Approved' : 'Sent to Product marketing'}</span>
                 : j.route === 'Product marketing' ? <>

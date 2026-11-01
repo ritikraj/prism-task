@@ -106,7 +106,7 @@ export function Merge() {
         </div>
       )}
       <div className="p-card">
-        <div className="p-card-title">AI proposal</div>
+        <div className="p-card-title ai-label"><span className="ai-ic" /><span className="ai-text">AI proposal</span></div>
         <p>Keep 1 master and 2 regional variants linked to it. Archive {merge.archive}. Usage history and share links move to the master.</p>
         {merge.result.map(r => <div key={r} className="p-row"><span className="p-grow">{r}</span></div>)}
         <div className="p-banner">Future pricing changes touch {merge.keep} assets here, not {merge.versions}.</div>
@@ -240,7 +240,7 @@ export function Asset() {
   return (
     <>
       <Head title="Ledgerly pricing overview v7" sub={`Deck · Enablement · ${4 + (fileLinked ? 2 : 0)} tokens, ${plain} plain text matches`}>
-        <button className="p-btn" disabled={scanning} onClick={runScan}>{scanning ? 'Scanning…' : 'Scan this file'}</button>
+        <button className="p-btn" disabled={scanning} onClick={runScan}><span className="ai-ic" /> {scanning ? 'Scanning…' : 'Scan this file'}</button>
       </Head>
       {fileScanned && !fileLinked && (
         <div className="p-banner"><span className="p-grow">Scan found 2 plain text matches on slides 6 and 8. One of them is outdated.</span>
