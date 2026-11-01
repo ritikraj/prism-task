@@ -289,3 +289,6 @@
 .p-skel { display: block; border-radius: 4px; background: var(--p-head); }
 .p-skel-row { display: flex; align-items: center; gap: 12px; }
 .p-skel-row .p-grow { display: flex; flex-direction: column; gap: 6px; }
+.p-container { container-type: inline-size; }
+.p-dash { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@container (max-width: 760px) { .p-dash { grid-template-columns: repeat(2, minmax(0, 1fr)); } .p-skel-grid { grid-template-columns: 1fr; } }
