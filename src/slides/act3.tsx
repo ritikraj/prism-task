@@ -106,7 +106,7 @@ export function Anatomy() {
 export function ClaimHome() {
   const step = useStep()
   const rows: [string, string, string, string, string][] = [
-    ...facts.map(f => [f.token, 'Fact', f.value, f.owner, f.source] as [string, string, string, string, string]),
+    ...facts.filter(f => !['pro_price_emea_*', 'sso_support'].includes(f.token)).map(f => [f.token, 'Fact', f.value, f.owner, f.source] as [string, string, string, string, string]),
     ...messages.map(m => [m.text, 'Message', '', m.owner, m.source] as [string, string, string, string, string]),
   ]
   return (
@@ -123,7 +123,6 @@ export function ClaimHome() {
           )
         })}</tbody>
       </table>
-      <Reveal at={1}><p className="caption">Our {change.from} is one row. One value, one owner, one source. Every asset points here.</p></Reveal>
     </Frame>
   )
 }
