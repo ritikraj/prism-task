@@ -311,3 +311,6 @@ kbd { font: 500 12px var(--font); border: 1px solid var(--line); border-bottom-w
 .gate-arrow::after { content: ''; position: absolute; right: -1px; top: -5px; border: 6px solid transparent; border-left: 9px solid var(--ink); border-right: 0; }
 .gate-bar { position: absolute; left: 50%; top: -28px; width: 6px; height: 58px; margin-left: -3px; border-radius: 3px; background: var(--ink); }
 .gate-bar.ai { background: var(--ai-grad); }
+.gate-top { padding-bottom: 22px; }
+.gate-bottom { padding-top: 22px; }
+.gate-bar { top: -13px; height: 28px; }
