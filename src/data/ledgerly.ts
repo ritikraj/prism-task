@@ -218,8 +218,8 @@ export const dashboard = {
 }
 // Earlier changes, already closed (for "View all").
 export const pastChanges: [string, string, string, number][] = [
-  ['Starter price: $27 to $29', 'Single change', 'Oct 1', 188],
-  ['SOC 2 Type II renewed', 'Single change', 'Sep 12', 96],
-  ['SSO on all plans', 'Single change', 'Aug 30', 84],
-  ['Q3 APAC pricing update', 'Batch change', 'Jul 1', 142],
+  ['Starter price: $27 to $29', '1 fact changed', 'Oct 1', 188],
+  ['SOC 2 Type II renewed', '1 fact changed', 'Sep 12', 96],
+  ['SSO on all plans', '1 fact changed', 'Aug 30', 84],
+  ['Q3 APAC pricing update', '9 facts changed', 'Jul 1', 142],
 ]

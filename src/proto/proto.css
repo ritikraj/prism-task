@@ -280,3 +280,12 @@
 .p-health i.review { background: var(--p-accent); }
 .p-table tr.static { cursor: default; }
 .p-table tr.static:hover td { background: none; }
+
+/* Page container; change cards fill the row; skeleton fill */
+.p-container { width: 100%; max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: inherit; }
+.p-carousel > .p-change-card { flex: 1 0 280px; }
+.p-skel-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+.p-skel-grid .p-card { display: flex; flex-direction: column; gap: 14px; }
+.p-skel { display: block; border-radius: 4px; background: var(--p-head); }
+.p-skel-row { display: flex; align-items: center; gap: 12px; }
+.p-skel-row .p-grow { display: flex; flex-direction: column; gap: 6px; }

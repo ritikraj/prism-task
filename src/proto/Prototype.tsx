@@ -68,7 +68,7 @@ export default function Prototype() {
             <span className="p-grow" /><span className="p-muted p-small">{company.name} · {today}</span>
           </header>
           <div className="p-panel">
-            <main className="p-main"><Screen /></main>
+            <main className="p-main"><div className="p-container"><Screen /></div></main>
           </div>
         </div>
         {inChange && <ChangeSheet />}
@@ -138,9 +138,9 @@ function TierSheet() {
   )
 }
 
-const statusA = (s: { live: boolean; closed: boolean }) => (s.closed ? 'Closed' : s.live ? 'Live' : 'Ready to review')
+const statusA = (s: { live: boolean; closed: boolean }) => (s.closed ? 'Closed' : s.live ? 'Live' : '')
 const statusB = (s: { scheduled: boolean; ukScheduled: boolean }) =>
-  s.scheduled && s.ukScheduled ? 'Scheduled' : s.scheduled || s.ukScheduled ? 'Partly scheduled' : 'Ready to review'
+  s.scheduled && s.ukScheduled ? 'Scheduled' : s.scheduled || s.ukScheduled ? 'Partly scheduled' : ''
 
 // 1. Home: what needs attention (a scrolling row of cards), then the library at a glance.
 function Home() {
@@ -149,13 +149,13 @@ function Home() {
   const a = statusA(s), b = statusB(s)
   const cards = [
     <article key="a" className="p-change-card" onClick={() => go('impact')}>
-      <div className="p-card-top"><span className="p-chip">Single change</span><span className="p-grow" /><span className={`p-chip ${live ? 'ok' : 'warn'}`}>{a}</span></div>
+      <div className="p-card-top"><span className="p-chip">1 fact changed</span><span className="p-grow" />{a && <span className="p-chip ok">{a}</span>}</div>
       <h2>{change.title}</h2>
       <p className="p-muted p-small">{change.source} sync, {change.synced}. Effective {change.effective}.</p>
       <Stats items={[[<b>{change.places}</b>, 'places'], [<Pri p="P0" />, `${change.p0}`], [<Pri p="P1" />, `${change.p1}`]]} />
     </article>,
     <article key="b" className="p-change-card" onClick={() => go('batch')}>
-      <div className="p-card-top"><span className="p-chip">Batch change</span><span className="p-grow" /><span className={`p-chip ${b === 'Scheduled' ? 'ok' : 'warn'}`}>{b}</span></div>
+      <div className="p-card-top"><span className="p-chip">{batch.tokens} facts changed</span><span className="p-grow" />{b && <span className={`p-chip ${b === 'Scheduled' ? 'ok' : ''}`}>{b}</span>}</div>
       <h2>{batch.title}</h2>
       <p className="p-muted p-small">{batch.tiers.length - 1} tiers on {batch.effective}. {batch.exception.tier} on {batch.exception.effective}.</p>
       <Stats items={[[<b>{batch.places}</b>, 'places'], [<Pri p="P0" />, `${batch.p0}`], [<Pri p="P1" />, `${batch.p1}`]]} />
@@ -175,10 +175,11 @@ function Home() {
     <>
       <Head title={`Good morning, ${admin.name.split(' ')[0]}`} sub={`${company.name} content, ${today}.`} />
       <section>
-        <div className="p-row p-table-head"><span className="p-card-title p-grow">Needs attention · {cards.length}</span><button className="p-link" onClick={() => set({ allOpen: true })}>View all changes</button></div>
+        <div className="p-row p-table-head"><span className="p-card-title p-grow">Needs attention</span><button className="p-link" onClick={() => set({ allOpen: true })}>View all changes</button></div>
         <Carousel>{cards}</Carousel>
       </section>
       <Dashboard />
+      <Skeleton />
     </>
   )
 }
@@ -187,6 +188,13 @@ function Home() {
 function Carousel({ children }: { children: ReactNode[] }) {
   const ref = useRef<HTMLDivElement>(null)
   const [at, setAt] = useState(0)
+  const [over, setOver] = useState(false)
+  useEffect(() => {
+    const el = ref.current!
+    const ro = new ResizeObserver(() => setOver(el.scrollWidth > el.clientWidth + 1))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
   const step = () => (ref.current!.firstElementChild as HTMLElement).offsetWidth + 16
   const onScroll = () => {
     const el = ref.current!
@@ -195,9 +203,9 @@ function Carousel({ children }: { children: ReactNode[] }) {
   return (
     <>
       <div ref={ref} className="p-carousel" onScroll={onScroll}>{children}</div>
-      <div className="p-cdots">{children.map((_, i) => (
+      {over && <div className="p-cdots">{children.map((_, i) => (
         <button key={i} aria-label={`Card ${i + 1} of ${children.length}`} className={i === at ? 'on' : ''} onClick={() => ref.current!.scrollTo({ left: i * step(), behavior: 'smooth' })} />
-      ))}</div>
+      ))}</div>}
     </>
   )
 }
@@ -247,20 +255,31 @@ function Dashboard() {
   )
 }
 
+// Placeholder blocks: the rest of a real home page, not designed here.
+function Skeleton() {
+  const bar = (w: string, h = 10) => <span className="p-skel" style={{ width: w, height: h }} />
+  return (
+    <section className="p-skel-grid" aria-hidden="true">
+      <div className="p-card">{bar('30%', 12)}{[92, 78, 85, 70, 88].map((w, i) => <div key={i} className="p-skel-row">{bar('28px', 28)}<span className="p-grow">{bar(`${w}%`)}{bar(`${w - 30}%`, 8)}</span>{bar('48px')}</div>)}</div>
+      <div className="p-card">{bar('40%', 12)}<span className="p-skel" style={{ height: 120 }} />{bar('90%')}{bar('70%')}{bar('80%')}</div>
+    </section>
+  )
+}
+
 // Every change, current and closed. The list lives in a side modal, not a page.
 function AllChanges() {
   const s = useProto()
   const rows: [string, string, string, string, number, () => void][] = [
-    [change.title, 'Single change', statusA(s), change.effective, change.places, () => s.go('impact')],
-    [batch.title, 'Batch change', statusB(s), batch.effective, batch.places, () => s.go('batch')],
+    [change.title, '1 fact changed', statusA(s), change.effective, change.places, () => s.go('impact')],
+    [batch.title, `${batch.tokens} facts changed`, statusB(s), batch.effective, batch.places, () => s.go('batch')],
     ...pastChanges.map(([t, k, eff, p]): [string, string, string, string, number, () => void] => [t, k, 'Closed', eff, p, notHere]),
   ]
   return (
     <Sheet title="All changes" sub="Every change synced from its source, newest first." onClose={() => s.set({ allOpen: false })}>
       <table className="p-table">
-        <thead><tr><th>Change</th><th>Type</th><th>Status</th><th>Effective</th><th>Places</th></tr></thead>
+        <thead><tr><th>Change</th><th>What changed</th><th>Status</th><th>Effective</th><th>Places</th></tr></thead>
         <tbody>{rows.map(([t, k, st, eff, p, open]) => (
-          <tr key={t} onClick={open}><td><b>{t}</b></td><td>{k}</td><td><span className={`p-chip ${st === 'Ready to review' || st === 'Partly scheduled' ? 'warn' : st === 'Closed' ? '' : 'ok'}`}>{st}</span></td><td>{eff}</td><td>{p}</td></tr>
+          <tr key={t} onClick={open}><td><b>{t}</b></td><td><span className="p-chip">{k}</span></td><td>{st && <span className={`p-chip ${st === 'Live' || st === 'Scheduled' ? 'ok' : ''}`}>{st}</span>}</td><td>{eff}</td><td>{p}</td></tr>
         ))}</tbody>
       </table>
     </Sheet>
