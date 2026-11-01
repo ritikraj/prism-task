@@ -77,7 +77,7 @@ export function Scan() {
         </div>
       </div>
       {s.untokOpen && (
-        <Sheet title={`${un.length} spots that cannot hold tokens`} sub="Text inside images, scans and recordings. A token cannot reach it." onClose={() => set({ untokOpen: false })}>
+        <Sheet title={`${un.length} spots that cannot hold tokens`} onClose={() => set({ untokOpen: false })}>
           <div className="p-row p-table-head"><span className="p-grow" />
             {flagged ? <span className="p-chip ok">Flagged for replacement</span> : <button className="p-btn primary" onClick={() => { set({ flagged: true }); say(`${un.length} spots flagged. Their owners get a task.`) }}>Flag all for replacement</button>}
           </div>

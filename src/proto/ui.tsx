@@ -19,7 +19,7 @@ export const Ic = ({ d, size = 16 }: { d: string; size?: number }) => (
 )
 
 // One big side modal (single changes, batches, long lists). Esc closes only the topmost one.
-export function Sheet({ title, sub, tabs, onClose, children }: { title: string; sub: ReactNode; tabs?: ReactNode; onClose: () => void; children: ReactNode }) {
+export function Sheet({ title, sub, tabs, onClose, children }: { title: string; sub?: ReactNode; tabs?: ReactNode; onClose: () => void; children: ReactNode }) {
   const ref = useRef<HTMLElement>(null)
   useEffect(() => {
     const on = (e: KeyboardEvent) => {
@@ -32,9 +32,9 @@ export function Sheet({ title, sub, tabs, onClose, children }: { title: string; 
   return (
     <div className="p-scrim" onClick={onClose}>
       <section ref={ref} className="p-sheet" role="dialog" aria-label={title} onClick={e => e.stopPropagation()}>
-        <header className="p-sheet-head">
+        <header className={`p-sheet-head ${tabs ? '' : 'solo'}`}>
           <div className="p-head">
-            <div className="p-grow"><h1>{title}</h1><p className="p-muted p-sub-line">{sub}</p></div>
+            <div className="p-grow"><h1>{title}</h1>{sub && <p className="p-muted p-sub-line">{sub}</p>}</div>
             <button className="p-icon" aria-label="Close" title="Close" onClick={onClose}><Ic d="M6 6l12 12M18 6L6 18" /></button>
           </div>
           {tabs}

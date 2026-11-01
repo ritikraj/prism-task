@@ -275,7 +275,7 @@ function AllChanges() {
     ...pastChanges.map(([t, k, eff, p]): [string, string, string, string, number, () => void] => [t, k, 'Closed', eff, p, notHere]),
   ]
   return (
-    <Sheet title="All changes" sub="Every change synced from its source, newest first." onClose={() => s.set({ allOpen: false })}>
+    <Sheet title="All changes" onClose={() => s.set({ allOpen: false })}>
       <table className="p-table">
         <thead><tr><th>Change</th><th>What changed</th><th>Status</th><th>Effective</th><th>Places</th></tr></thead>
         <tbody>{rows.map(([t, k, st, eff, p, open]) => (
