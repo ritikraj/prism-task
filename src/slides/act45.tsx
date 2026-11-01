@@ -30,12 +30,12 @@ export function SystemModel() {
 }
 
 const FLOW: [string, string][] = [
-  ['Detect', 'A claim changes at its source. Prism notices first.'],
+  ['Home', 'Changes arrive from their source, sorted by deals at risk.'],
   ['Impact', 'Where the claim lives, ranked by upcoming meetings.'],
   ['Review', 'In three lanes: tokens, same wording groups, judgment.'],
-  ['Publish', 'Fixed content goes live. The rest carries a warning.'],
-  ['Reach sellers', `Only the ${sellersAtRisk.withMeetings} who need it.`],
-  ['Follow up', 'On copies already sent, like PDFs in buyer inboxes.'],
+  ['Go live', `Approved edits go live. Only the ${sellersAtRisk.withMeetings} sellers who need it are told.`],
+  ['Tracking', 'Who saw it, and copies already in buyer inboxes.'],
+  ['Library', 'Scans and merges make the next change smaller.'],
 ]
 export function Flow() {
   return (
