@@ -24,9 +24,10 @@ export function PricingChart({ pct = 20 }: { pct?: number }) {
 // One seller-facing slide, reused wherever the deck shows content: headline, discount line, chart, compliance line.
 function PricingSlide({ discount = change.from, banner, label = 'Mock · Ledgerly pricing, slide 4' }: { discount?: ReactNode; banner?: ReactNode; label?: string }) {
   return (
-    <div className="mock-slide pricing">
-      {banner}
+    <div className="mock-wrap">
       <div className="mock-label">{label}</div>
+      <div className="mock-slide pricing">
+      {banner}
       <div className="ps-body">
         <div className="ps-text">
           <h3>Pricing that grows with you</h3>
@@ -34,6 +35,7 @@ function PricingSlide({ discount = change.from, banner, label = 'Mock · Ledgerl
           <p className="muted">Built for audited teams. SOC 2 Type II.</p>
         </div>
         <PricingChart />
+      </div>
       </div>
     </div>
   )

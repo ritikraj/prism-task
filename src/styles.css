@@ -225,7 +225,6 @@ kbd { font: 500 12px var(--font); border: 1px solid var(--line); border-bottom-w
 .mc-lab { font-size: 12px; fill: var(--muted); }
 .mc-tag { font-size: 15px; font-weight: 600; fill: var(--ink); }
 .mock-slide.pricing { display: flex; flex-direction: column; justify-content: flex-start; gap: 0; padding: 0; aspect-ratio: auto; max-height: none; overflow: hidden; }
-.mock-slide.pricing .mock-label { position: static; padding: 16px 20px 0; }
 .mock-slide.pricing .outdated { position: static; }
 .ps-body { flex: 1; display: grid; grid-template-columns: auto minmax(200px, 300px); justify-content: center; align-items: center; gap: 56px; padding: 40px 56px 56px; }
 .ps-text { display: flex; flex-direction: column; gap: 12px; }
@@ -246,3 +245,10 @@ kbd { font: 500 12px var(--font); border: 1px solid var(--line); border-bottom-w
 .msg-value { font-size: 30px; font-weight: 600; line-height: 1.2; letter-spacing: -.01em; }
 .msg-diff { display: flex; flex-direction: column; gap: 6px; font-size: 28px; font-weight: 600; margin: 12px 0; }
 .msg-diff s { color: var(--faint); font-weight: 400; }
+
+/* mock labels sit outside, above their card */
+.mock-wrap { width: 100%; max-width: 920px; display: flex; flex-direction: column; gap: 10px; }
+.mock-wrap .mock-label { position: static; }
+.ex-layer.base .mock-label { top: -30px; left: 0; }
+.mock-panel { padding-top: 28px; margin-top: 30px; }
+.mock-panel .mock-label { top: -26px; left: 0; }
