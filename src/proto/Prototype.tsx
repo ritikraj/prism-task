@@ -45,7 +45,7 @@ export default function Prototype() {
   const section: Route = LIBRARY_ROUTES.includes(page) ? 'library' : CLAIM_ROUTES.includes(route) ? 'claims' : 'home'
   const CRUMBS: Record<Route, string[]> = {
     home: ['Home'], batch: ['Home'], impact: ['Home'], review: ['Home'], golive: ['Home'], tracking: ['Home'],
-    library: ['Library', 'All content'], asset: ['Library', 'Ledgerly pricing overview v7'], scan: ['Library', 'Scan results'],
+    library: ['Library'], asset: ['Library', 'Ledgerly pricing overview v7'], scan: ['Library', 'Scan results'],
     merge: ['Library', 'Duplicates'], claims: ['Claims'], claim: ['Claims', claim],
   }
   const crumbs = CRUMBS[page]
