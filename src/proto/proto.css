@@ -68,7 +68,7 @@
 .p-tbtn .ai-ic { width: 18px; height: 18px; }
 .p-dot { position: absolute; top: 7px; right: 8px; width: 7px; height: 7px; border-radius: 50%; background: #ef4444; box-shadow: 0 0 0 2px #ece8e6; }
 .p-btn.p-new { height: 32px; padding: 0 12px 0 10px; margin-right: 4px; font-size: 13px; }
-.p-crumbs { flex: none; max-width: 42%; min-width: 0; display: flex; align-items: center; gap: 8px; font-size: 16px; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; }
+.p-crumbs { flex: none; max-width: 50%; min-width: 0; display: flex; align-items: center; gap: 8px; font-size: 16px; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; }
 .p-crumb { border: 0; background: none; padding: 0; color: var(--p-muted); cursor: pointer; }
 .p-crumb:hover { color: var(--p-ink); }
 .p-sep { color: var(--p-faint); margin-left: 8px; }

@@ -71,8 +71,8 @@ export default function Prototype() {
                 ? <span key={c}><button className="p-crumb" onClick={() => go(section)}>{c}</button><span className="p-sep">/</span></span>
                 : <span key={c} className="p-crumb-now">{c}</span>)}
             </div>
-            <button className="p-search" onClick={notHere}><Ic d={ICON.search} size={15} /><span className="p-grow">Search</span><kbd>Ctrl K</kbd></button>
             <span className="p-grow" />
+            <button className="p-search" onClick={notHere}><Ic d={ICON.search} size={15} /><span className="p-grow">Search</span><kbd>Ctrl K</kbd></button>
             <button className="p-btn p-new" onClick={notHere}><BtnIc d={ICON.plus}>New</BtnIc></button>
             <button className="p-tbtn" aria-label="Ask AI" title="Ask AI" onClick={notHere}><span className="ai-ic" /></button>
             <button className="p-tbtn" aria-label="Help" title="Help" onClick={notHere}><Ic d={ICON.help} size={18} /></button>
