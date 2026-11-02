@@ -329,6 +329,8 @@
 .p-bucket .p-big { font-size: 30px; line-height: 1; }
 .p-bucket .p-small { flex: 1; }
 .p-bucket.done { opacity: .7; }
+.p-btn.tertiary { align-self: flex-start; margin: 4px 0 -4px -10px; padding: 6px 10px; border-color: transparent; background: none; box-shadow: none; color: var(--p-accent); }
+.p-btn.tertiary:hover:not(:disabled) { border-color: transparent; background: color-mix(in srgb, var(--p-accent) 10%, transparent); }
 .p-chip.urg-urgent { background: var(--p-warn-bg); color: var(--p-warn); }
 .p-chip.urg-high { background: var(--p-accent-soft); color: var(--p-accent); }
 .p-bucket-nav { padding: 0; }

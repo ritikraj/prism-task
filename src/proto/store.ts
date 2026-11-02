@@ -9,12 +9,12 @@ const POOL_SCAN = [
 ]
 
 export type Confidence = 'High' | 'Medium' | 'Low'
-export type Route = 'home' | 'batch' | 'impact' | 'review' | 'scan' | 'merge' | 'claims' | 'claim' | 'library' | 'asset'
+export type Route = 'home' | 'impact' | 'review' | 'scan' | 'merge' | 'claims' | 'claim' | 'library' | 'asset'
 // impact: the four urgency cards; review: inside one of them.
 export const CHANGE_ROUTES: Route[] = ['impact', 'review']
 export const LIBRARY_ROUTES: Route[] = ['library', 'asset']
 // These open as side modals over the page you came from (base).
-export const MODAL_ROUTES: Route[] = [...CHANGE_ROUTES, 'batch', 'scan', 'merge']
+export const MODAL_ROUTES: Route[] = [...CHANGE_ROUTES, 'scan', 'merge']
 export const CLAIM_ROUTES: Route[] = ['claims', 'claim']
 
 // The guided path, in order.
@@ -91,9 +91,6 @@ type S = {
   jDone: Record<string, 'ok' | 'sent'>
   alerted: Bucket[]
   live: boolean
-  scheduled: boolean
-  ukScheduled: boolean
-  sheet: string | null
   allOpen: boolean
   untokOpen: boolean
   claim: string
@@ -113,7 +110,7 @@ type S = {
 }
 const initial = {
   route: 'home' as Route, base: 'home' as Route, guide: true, toast: null, retired: false, bucket: 'Urgent' as Bucket, pub: {}, narrow: [], jDone: {}, alerted: [],
-  live: false, scheduled: false, ukScheduled: false, sheet: null, allOpen: false, untokOpen: false,
+  live: false, allOpen: false, untokOpen: false,
   claim: 'annual_discount', scanDone: {}, spotsOff: {}, uptimeOwner: null, flagged: false,
   fileScanned: false, fileLinked: false, v6Asked: false, merged: false, notDup: false,
 }
@@ -122,7 +119,7 @@ export const useProto = create<S>(set => ({
   ...initial,
   // Jumping to tracking (from the guide) implies the change went live.
   go: route => set(s => ({
-    route, base: MODAL_ROUTES.includes(route) ? (MODAL_ROUTES.includes(s.route) ? s.base : s.route) : route, toast: null, sheet: null, allOpen: false, untokOpen: false })),
+    route, base: MODAL_ROUTES.includes(route) ? (MODAL_ROUTES.includes(s.route) ? s.base : s.route) : route, toast: null, allOpen: false, untokOpen: false })),
   set: p => set(p),
   say: toast => { clearTimeout(timer); set({ toast }); timer = window.setTimeout(() => set({ toast: null }), 2400) },
   reset: () => set({ ...initial }),

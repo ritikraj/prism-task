@@ -1,28 +1,5 @@
-// Act 4 (the flow, the prototype) and Act 5: Close.
+// Act 4 (the prototype) and Act 5: Close.
 import { Frame, Reveal, Steps, useStep } from '../deck/blocks'
-import { sellersAtRisk } from '../data/ledgerly'
-
-const FLOW: [string, string][] = [
-  ['Home', 'Changes arrive from their source, sorted by deals at risk.'],
-  ['Impact', 'Tokens already updated. The rest in four urgency levels, each with its reason.'],
-  ['Approve & Publish', `Identical sentences publish together, the rest one by one. Only the ${sellersAtRisk.withMeetings} sellers who need it are told.`],
-  ['Library', 'Scans and merges make the next change smaller.'],
-]
-export function Flow() {
-  return (
-    <Frame eyebrow="The flow" title="What the prototype walks through.">
-      <ol className="flow">
-        {FLOW.map(([t, d], i) => (
-          <Reveal key={t} as="li" at={i + 1}>
-            <span className="num">{String(i + 1).padStart(2, '0')}</span>
-            <b>{t}</b>
-            <span className="muted">{d}</span>
-          </Reveal>
-        ))}
-      </ol>
-    </Frame>
-  )
-}
 
 export function Measure() {
   return (

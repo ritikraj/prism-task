@@ -17,7 +17,6 @@ export type Fact = { token: string; label: string; value: string; next?: string;
 export const facts: Fact[] = [
   { token: 'annual_discount', label: 'Annual discount', value: '20%', next: '15%', owner: 'Finance', source: 'Pricing sheet', lastChecked: 'Oct 28', usedIn: 456, linked: 160 },
   { token: 'starter_price', label: 'Starter price', value: '$29 per seat per month', owner: 'Finance', source: 'Pricing sheet', lastChecked: 'Oct 28', usedIn: 212, linked: 174 },
-  { token: 'pro_price_emea_*', label: 'Pro price, EMEA', value: '12 regional tiers', owner: 'Finance', source: 'Pricing sheet', lastChecked: 'Nov 2', usedIn: 214, linked: 214 },
   { token: 'rivalset_price', label: 'Rivalset price', value: '$35 per seat per month', owner: 'Product marketing', source: 'Competitor tracker', lastChecked: 'Oct 20', usedIn: 64, linked: 52 },
   { token: 'soc2_status', label: 'SOC 2 status', value: 'SOC 2 Type II', owner: 'Security', source: 'Trust page', lastChecked: 'Aug 14', usedIn: 121, linked: 100 },
   { token: 'sso_support', label: 'SSO support', value: 'All plans', owner: 'Product', source: 'Feature list', lastChecked: 'Oct 02', usedIn: 97, linked: 97 },
@@ -90,21 +89,6 @@ export const wordingGroups: [string, number][] = [
 
 // Derived number for the judgment lane: 50 seats x $29 x 12 months x discount
 export const derived = { seats: 50, before: 3480, after: 2610, text: 'Annual billing saves a 50 seat team' }
-
-// Card A: every place is a token, so nothing to rewrite. One tier has its own date.
-export const batch = {
-  title: 'Q4 EMEA pricing update', synced: 'today 08:12', effective: 'Nov 15', owner: 'Finance',
-  tokens: 12, places: 214, assets: 38, p0: 4, p1: 9, staleCopies: 0,
-  exception: { tier: 'UK Pro', effective: 'Jan 1' },
-  tiers: [
-    ['Germany Pro', 'pro_price_emea_de', '€49', '€52'], ['France Pro', 'pro_price_emea_fr', '€49', '€52'],
-    ['UK Pro', 'pro_price_emea_uk', '£42', '£45'], ['Netherlands Pro', 'pro_price_emea_nl', '€49', '€52'],
-    ['Spain Pro', 'pro_price_emea_es', '€45', '€48'], ['Italy Pro', 'pro_price_emea_it', '€45', '€48'],
-    ['Sweden Pro', 'pro_price_emea_se', 'kr 560', 'kr 595'], ['Denmark Pro', 'pro_price_emea_dk', 'kr 370', 'kr 395'],
-    ['Ireland Pro', 'pro_price_emea_ie', '€49', '€52'], ['Belgium Pro', 'pro_price_emea_be', '€49', '€52'],
-    ['Austria Pro', 'pro_price_emea_at', '€49', '€52'], ['Poland Pro', 'pro_price_emea_pl', 'zł 199', 'zł 215'],
-  ] as [string, string, string, string][],
-}
 
 // Card C and D (screens arrive in phase 3)
 export const scan = {

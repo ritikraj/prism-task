@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import './proto.css'
 import {
-  admin, batch, bucketSamples, buckets, change, company, dashboard, facts, lanes, merge, pastChanges, retire, retireSamples, scan,
+  admin, bucketSamples, buckets, change, company, dashboard, facts, lanes, merge, pastChanges, retire, retireSamples, scan,
   sellersAtRisk, today, type Bucket,
 } from '../data/ledgerly'
 import {
@@ -13,7 +13,7 @@ import { Conf, Head, Ic, Sheet, Stats } from './ui'
 import { Asset, Claim, Claims, Library, Merge, Scan } from './Screens3'
 
 const SCREENS: Record<Route, () => JSX.Element> = {
-  home: Home, batch: Home, impact: Home, review: Home,
+  home: Home, impact: Home, review: Home,
   scan: Home, merge: Home, claims: Claims, claim: Claim, library: Library, asset: Asset,
 }
 const RAIL: [string, string, Route | null][] = [
@@ -23,7 +23,7 @@ const RAIL: [string, string, Route | null][] = [
 ]
 
 export default function Prototype() {
-  const { route, base, guide, toast, claim, sheet, allOpen, go, set, reset } = useProto()
+  const { route, base, guide, toast, claim, allOpen, go, set, reset } = useProto()
   const root = useRef<HTMLDivElement>(null)
   const [full, setFull] = useState(false)
   useEffect(() => {
@@ -44,7 +44,7 @@ export default function Prototype() {
   const Screen = SCREENS[page]
   const section: Route = LIBRARY_ROUTES.includes(page) ? 'library' : CLAIM_ROUTES.includes(route) ? 'claims' : 'home'
   const CRUMBS: Record<Route, string[]> = {
-    home: ['Home'], batch: ['Home'], impact: ['Home'], review: ['Home'],
+    home: ['Home'], impact: ['Home'], review: ['Home'],
     library: ['Library'], asset: ['Library', 'Ledgerly pricing overview v7'], scan: ['Library', 'Scan results'],
     merge: ['Library', 'Duplicates'], claims: ['Claims'], claim: ['Claims', claim],
   }
@@ -73,8 +73,6 @@ export default function Prototype() {
           </div>
         </div>
         {inChange && <ChangeSheet />}
-        {route === 'batch' && <BatchSheet />}
-        {route === 'batch' && sheet && <TierSheet />}
         {route === 'scan' && <Sheet title="Scan results" onClose={() => go(base)}><Scan /></Sheet>}
         {route === 'merge' && <Sheet title={`${merge.versions} versions of ${merge.asset}`} onClose={() => go(base)}><Merge /></Sheet>}
         {allOpen && <AllChanges />}
@@ -105,53 +103,26 @@ export default function Prototype() {
 function ChangeSheet() {
   const s = useProto()
   return (
-    <Sheet title={change.title} sub={`${change.source} sync, ${change.synced}. Confirmed by ${change.owner}. Effective ${change.effective}, ${change.regions.toLowerCase()}.`} onClose={() => s.go(s.base)}>
+    <Sheet title={change.title} sub={`${change.source} · ${change.synced[0].toUpperCase()}${change.synced.slice(1)}`} onClose={() => s.go(s.base)}>
       {s.route === 'review' ? <BucketView /> : <Overview />}
     </Sheet>
   )
 }
 
-// One tier of the batch. Token only, so there is nothing to review.
-function TierSheet() {
-  const { sheet, scheduled, ukScheduled, set } = useProto()
-  const [tier, token, from, to] = batch.tiers.find(t => t[1] === sheet)!
-  const uk = tier === batch.exception.tier
-  const eff = uk ? batch.exception.effective : batch.effective
-  const done = uk ? ukScheduled : scheduled
-  return (
-    <Sheet title={`${tier} price`} sub={`${from} to ${to} · effective ${eff}. Part of ${batch.title}.`} onClose={() => set({ sheet: null })}>
-      <div className="p-summary">
-        <div className="p-stat"><b>{from}</b><span>now</span></div>
-        <div className="p-stat"><b>{to}</b><span>new</span></div>
-        <div className="p-stat"><b>{eff}</b><span>effective</span></div>
-      </div>
-      <div className="p-banner">Every place holding <code>{`{${token}}`}</code> updates by itself on {eff}. Nothing to rewrite or review.</div>
-      <div>{done ? <span className="p-chip ok">Scheduled for {eff}</span> : <span className="p-muted p-small">Schedule it from its table on the batch page.</span>}</div>
-    </Sheet>
-  )
-}
-
 const statusA = (s: Parameters<typeof allDone>[0] & { live: boolean }) => (allDone(s) ? 'Published' : s.live ? 'Partly published' : '')
-const statusB = (s: { scheduled: boolean; ukScheduled: boolean }) =>
-  s.scheduled && s.ukScheduled ? 'Scheduled' : s.scheduled || s.ukScheduled ? 'Partly scheduled' : ''
 
 // 1. Home: what needs attention (a scrolling row of cards), then the library at a glance.
 function Home() {
   const s = useProto()
   const { go, set, live, merged, scanDone } = s
-  const a = statusA(s), b = statusB(s)
+  const a = statusA(s)
+  const total = useAllRows().length
   const cards = [
     <article key="a" className="p-change-card" onClick={() => go('impact')}>
       <div className="p-card-top"><span className="p-chip">1 fact changed</span><span className="p-grow" />{a && <span className={`p-chip ${a === 'Published' ? 'ok' : ''}`}>{a}</span>}</div>
       <h2>{change.title}</h2>
       <p className="p-muted p-small">{change.source} sync, {change.synced}. Effective {change.effective}.</p>
       <Stats items={[[<b>{change.places}</b>, 'places'], [<b>{buckets[0].places}</b>, 'urgent']]} />
-    </article>,
-    <article key="b" className="p-change-card" onClick={() => go('batch')}>
-      <div className="p-card-top"><span className="p-chip">{batch.tokens} facts changed</span><span className="p-grow" />{b && <span className={`p-chip ${b === 'Scheduled' ? 'ok' : ''}`}>{b}</span>}</div>
-      <h2>{batch.title}</h2>
-      <p className="p-muted p-small">{batch.tiers.length - 1} tiers on {batch.effective}. {batch.exception.tier} on {batch.exception.effective}.</p>
-      <Stats items={[[<b>{batch.places}</b>, 'places'], [<b>{batch.p0}</b>, 'urgent']]} />
     </article>,
     <article key="c" className="p-change-card" onClick={() => go('scan')}>
       <div className="p-card-top"><span className="p-chip">Scan result</span><span className="p-grow" />{Object.keys(scanDone).length > 0 && <span className="p-chip">In progress</span>}</div>
@@ -168,7 +139,7 @@ function Home() {
     <>
       <Head title={`Good morning, ${admin.name.split(' ')[0]}`} sub={`${company.name} content, ${today}.`} />
       <section className="p-sec">
-        <div className="p-row p-table-head"><span className="p-card-title p-grow">Needs attention</span><button className="p-link" onClick={() => set({ allOpen: true })}>View all changes</button></div>
+        <div className="p-row p-table-head"><span className="p-card-title p-grow">Needs attention</span><button className="p-link" onClick={() => set({ allOpen: true })}>View all ({total})</button></div>
         <Carousel>{cards}</Carousel>
       </section>
       <Dashboard />
@@ -284,54 +255,31 @@ function SkeletonCharts() {
   )
 }
 
-// Every change, current and closed. The list lives in a side modal, not a page.
-function AllChanges() {
+// Everything: open changes, the scan, duplicates, then closed changes. Home's "View all (n)" counts these.
+type Row = [string, string, string, string, number | string, () => void]
+function useAllRows(): Row[] {
   const s = useProto()
-  const rows: [string, string, string, string, number, () => void][] = [
+  return [
     [change.title, '1 fact changed', statusA(s), change.effective, change.places, () => s.go('impact')],
-    [batch.title, `${batch.tokens} facts changed`, statusB(s), batch.effective, batch.places, () => s.go('batch')],
-    ...pastChanges.map(([t, k, eff, p]): [string, string, string, string, number, () => void] => [t, k, 'Closed', eff, p, notHere]),
+    [`AI found ${scan.total} spots that could become tokens`, 'Scan result', Object.keys(s.scanDone).length > 0 ? 'In progress' : '', '—', scan.total, () => s.go('scan')],
+    [`${merge.versions} versions of ${merge.asset}`, 'Duplicates', s.merged ? 'Merged' : '', '—', '—', () => s.go('merge')],
+    ...pastChanges.map(([t, k, eff, p]): Row => [t, k, 'Closed', eff, p, notHere]),
   ]
-  return (
-    <Sheet title="All changes" onClose={() => s.set({ allOpen: false })}>
-      <table className="p-table">
-        <thead><tr><th>Change</th><th>What changed</th><th>Status</th><th>Effective</th><th>Places</th></tr></thead>
-        <tbody>{rows.map(([t, k, st, eff, p, open]) => (
-          <tr key={t} onClick={open}><td><b>{t}</b></td><td><span className="p-chip">{k}</span></td><td>{st && <span className={`p-chip ${st === 'Published' || st === 'Scheduled' ? 'ok' : ''}`}>{st}</span>}</td><td>{eff}</td><td>{p}</td></tr>
-        ))}</tbody>
-      </table>
-    </Sheet>
-  )
 }
 
-// Card A: a token-only batch, in a side modal. Two tables by effective date, one action each. A row opens that tier.
-function BatchSheet() {
-  const { scheduled, ukScheduled, set, say, go } = useProto()
-  const main = batch.tiers.filter(t => t[0] !== batch.exception.tier)
-  const uk = batch.tiers.filter(t => t[0] === batch.exception.tier)
-  return (
-    <Sheet title={batch.title} sub={`${change.source} sync, ${batch.synced}. ${batch.places} places in ${batch.assets} assets, all tokens, so nothing needs rewriting. Check the dates.`} onClose={() => go('home')}>
-      <TierTable title={`Effective ${batch.effective}`} rows={main} done={scheduled} label={`Schedule ${main.length} tiers for ${batch.effective}`} eff={batch.effective}
-        onGo={() => { set({ scheduled: true }); say(`${main.length} tiers scheduled for ${batch.effective}.`) }} />
-      <TierTable title={`Effective ${batch.exception.effective}`} rows={uk} done={ukScheduled} label={`Schedule for ${batch.exception.effective}`} eff={batch.exception.effective}
-        onGo={() => { set({ ukScheduled: true }); say(`${batch.exception.tier} scheduled for ${batch.exception.effective}.`) }} />
-    </Sheet>
-  )
-}
-function TierTable({ title, rows, done, label, eff, onGo }: { title: string; rows: [string, string, string, string][]; done: boolean; label: string; eff: string; onGo: () => void }) {
+// The full list lives in a side modal, not a page.
+function AllChanges() {
   const set = useProto(s => s.set)
+  const rows = useAllRows()
   return (
-    <div>
-      <div className="p-row p-table-head"><span className="p-card-title p-grow">{title} · {rows.length} {rows.length === 1 ? 'tier' : 'tiers'}</span>
-        {done ? <span className="p-chip ok">Scheduled for {eff}</span> : <button className="p-btn primary" onClick={onGo}>{label}</button>}
-      </div>
+    <Sheet title={`All (${rows.length})`} onClose={() => set({ allOpen: false })}>
       <table className="p-table">
-        <thead><tr><th>Tier</th><th>Token</th><th>Now</th><th>New</th><th>Effective</th></tr></thead>
-        <tbody>{rows.map(([tier, token, from, to]) => (
-          <tr key={token} onClick={() => set({ sheet: token })}><td><b>{tier}</b></td><td><code>{`{${token}}`}</code></td><td>{from}</td><td><b>{to}</b></td><td>{eff}</td></tr>
+        <thead><tr><th>Item</th><th>Type</th><th>Status</th><th>Effective</th><th>Places</th></tr></thead>
+        <tbody>{rows.map(([t, k, st, eff, p, open]) => (
+          <tr key={t} onClick={open}><td><b>{t}</b></td><td><span className="p-chip">{k}</span></td><td>{st && <span className={`p-chip ${st === 'Published' || st === 'Merged' ? 'ok' : ''}`}>{st}</span>}</td><td>{eff}</td><td>{p}</td></tr>
         ))}</tbody>
       </table>
-    </div>
+    </Sheet>
   )
 }
 
@@ -339,26 +287,26 @@ function TierTable({ title, rows, done, label, eff, onGo }: { title: string; row
 function Overview() {
   const s = useProto()
   const open = (id: Bucket) => { s.set({ bucket: id }); s.go('review') }
-  const left = buckets.reduce((n, b) => n + b.places, 0)
   return (
     <>
       <div className="p-done-strip"><Ic d="M5 12l5 5 9-11" /><span><b>{lanes.tokens} places already updated</b> by tokens when {change.owner} confirmed {change.to}.</span></div>
       <div className="p-sec">
-        <div className="p-card-title">{left} places left, by urgency</div>
         <div className="p-buckets">{buckets.map((b, bi) => {
           const done = b.id === 'Low' ? (s.retired ? b.places : 0) : bucketDone(s, bi)
           return (
-            <button key={b.id} className={`p-bucket ${done === b.places ? 'done' : ''}`} onClick={() => open(b.id)}>
+            <div key={b.id} className={`p-bucket ${done === b.places ? 'done' : ''}`} onClick={() => open(b.id)}>
               <span className="p-row"><Urg u={b.id} /><span className="p-grow" />{done === b.places && <span className="p-chip ok">{b.id === 'Low' ? 'Retired' : 'Published'}</span>}</span>
               <b className="p-big">{b.places - done}</b>
               <span className="p-muted p-small">{done ? `of ${b.places} places left` : 'places'}</span>
               <span className="p-small">{b.reason}</span>
               <span className="p-meter"><span style={{ width: `${(done / b.places) * 100}%` }} /></span>
-            </button>
+              <button className="p-btn tertiary" onClick={e => { e.stopPropagation(); open(b.id) }}>
+                {done === b.places ? 'View' : done ? 'Continue' : b.id === 'Low' ? 'Retire' : 'Review'}
+              </button>
+            </div>
           )
         })}</div>
       </div>
-      <p className="p-muted p-small">Until a place is published, sellers who open it see a banner with the current value.</p>
     </>
   )
 }

@@ -18,7 +18,7 @@ export const Ic = ({ d, size = 16 }: { d: string; size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>
 )
 
-// One big side modal (single changes, batches, long lists). Esc closes only the topmost one.
+// One big side modal (single changes, long lists). Esc closes only the topmost one.
 export function Sheet({ title, sub, tabs, onClose, children }: { title: string; sub?: ReactNode; tabs?: ReactNode; onClose: () => void; children: ReactNode }) {
   const ref = useRef<HTMLElement>(null)
   useEffect(() => {
