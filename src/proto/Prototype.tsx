@@ -398,7 +398,7 @@ function BucketView() {
   const toggle = (id: string) => setSkip(skip.includes(id) ? skip.filter(x => x !== id) : [...skip, id])
   const decide = (id: string, v: 'ok' | 'sent') => {
     set({ jDone: { ...jDone, [id]: v }, live: s.live || v === 'ok' })
-    say(v === 'ok' ? 'Published.' : 'Sent to Product marketing.')
+    say(v === 'ok' ? 'Approved.' : 'Sent to Product marketing.')
   }
   const footer = open.length > 0
     ? <>{toNext}<span className="p-grow" /><button className="p-btn primary" disabled={!picked.length} onClick={() => publish(picked)}>
@@ -432,6 +432,7 @@ function BucketView() {
       </section>
       <section className="p-sec">
         <div className="p-sec-row"><h2>Needs a closer look</h2><span className="p-grow" /><span className="p-muted p-small">{items.filter(j => !jDone[j.id]).length} of {items.length} left</span></div>
+        <p className="p-sec-note">The 20% is here, but no rule can swap it safely. The tag says why: math to redo, a claim that may no longer be true, a number in an image or video, signed terms, a translation, or a 20% that is not the discount.</p>
         <div className="p-lbox">{items.map(j => {
           const done = jDone[j.id]
           const open = why.includes(j.id)
@@ -442,7 +443,7 @@ function BucketView() {
               <Diff old={j.old} next={j.next} />
               <div className="p-jfoot">
                 <div className="p-lmeta">
-                  <span title={j.kind}>{j.where}</span>
+                  <span className="p-kind">{j.kind}</span><span>{j.where}</span>
                   <span className={`p-conf ${j.confidence.toLowerCase()}`}><i />{j.confidence} confidence</span>
                   {j.working && <button className="p-why" aria-expanded={open} onClick={() => setWhy(open ? why.filter(x => x !== j.id) : [...why, j.id])}>
                     <span className="ai-ic" />{open ? 'Hide reasoning' : 'Why this edit'}<Ic d={open ? 'M6 15l6-6 6 6' : 'M6 9l6 6 6-6'} size={13} />
@@ -450,10 +451,10 @@ function BucketView() {
                 </div>
                 <span className="p-grow" />
                 <div className="p-lside">
-                {done ? <span className="p-donetag"><Ic d={done === 'ok' ? ICON.check : ICON.send} size={13} />{done === 'ok' ? 'Published' : 'Sent to Product marketing'}</span> : <>
-                  <button className="p-btn sm ghost" title={toPmm ? 'Approve & Publish' : 'Send to Product marketing'} aria-label={toPmm ? 'Approve & Publish' : 'Send to Product marketing'}
+                {done ? <span className="p-donetag"><Ic d={done === 'ok' ? ICON.check : ICON.send} size={13} />{done === 'ok' ? 'Approved' : 'Sent to Product marketing'}</span> : <>
+                  <button className="p-btn sm ghost" title={toPmm ? 'Approve' : 'Send to Product marketing'} aria-label={toPmm ? 'Approve' : 'Send to Product marketing'}
                     onClick={() => decide(j.id, toPmm ? 'ok' : 'sent')}><Ic d={toPmm ? ICON.check : ICON.send} size={15} /></button>
-                  <button className="p-btn sm" onClick={() => decide(j.id, toPmm ? 'sent' : 'ok')}>{toPmm ? <BtnIc d={ICON.send}>Send to Product marketing</BtnIc> : <BtnIc d={ICON.check}>Approve & Publish</BtnIc>}</button>
+                  <button className="p-btn sm" onClick={() => decide(j.id, toPmm ? 'sent' : 'ok')}>{toPmm ? <BtnIc d={ICON.send}>Send to Product marketing</BtnIc> : <BtnIc d={ICON.check}>Approve</BtnIc>}</button>
                 </>}
                 </div>
               </div>

@@ -458,3 +458,5 @@
 .p-hcard-prog.done .p-hcard-pct span { color: var(--p-ok); font-weight: 500; }
 .p-hcard-go { color: var(--p-faint); transition: transform 120ms, color 120ms; }
 .p-hcard:hover .p-hcard-go { color: var(--p-ink-2); transform: translateX(2px); }
+.p-sec-note { margin: -4px 0 2px; max-width: 760px; font-size: 13px; color: var(--p-muted); }
+.p-kind { font-weight: 600; color: var(--p-ink-2); }
