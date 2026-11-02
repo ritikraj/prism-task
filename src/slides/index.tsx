@@ -17,7 +17,6 @@ export const slides: SlideDef[] = [
   { id: 'solved', act: A2, title: 'What is already solved', steps: 3, Component: Solved },
   { id: 'open', act: A2, title: 'What is still open', steps: 2, Component: StillOpen },
   { id: 'assumptions', act: A2, title: 'Assumptions', steps: 0, Component: Assumptions },
-  { id: 'reframe', act: A3, title: 'The reframe', steps: 1, Component: A3s.Reframe },
   { id: 'two-kinds', act: A3, title: 'Two kinds of change', steps: 2, Component: A3s.TwoKinds },
   { id: 'anatomy', act: A3, title: 'Anatomy of content', steps: 3, Component: A3s.Anatomy },
   { id: 'claim-home', act: A3, title: 'A claim has a home', steps: 1, Component: A3s.ClaimHome },

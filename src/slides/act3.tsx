@@ -1,6 +1,6 @@
-// Act 3: The idea (slides 9–23).
+// Act 3: The idea (slides 9–22).
 import type { ReactNode } from 'react'
-import { BeforeAfter, Cards, Counter, Frame, Reveal, Statement, Steps, useStep } from '../deck/blocks'
+import { BeforeAfter, Cards, Counter, Frame, Reveal, Steps, useStep } from '../deck/blocks'
 import { chain, change, company, derived, drift, facts, lanes, messages, retire, sellersAtRisk } from '../data/ledgerly'
 
 const discount = facts[0]
@@ -48,9 +48,6 @@ const Token = ({ name, value }: { name: string; value?: string }) => (
   <span className="token">{`{${name}}`}{value && <b> {value}</b>}</span>
 )
 
-export function Reframe() {
-  return <Frame center><Statement lines={["Files don't go stale.", 'Claims do.']} /></Frame>
-}
 
 export function TwoKinds() {
   return (
@@ -100,7 +97,7 @@ export function Anatomy() {
           </div>)}
         </div>
       </div>
-      <Reveal at={3}><p className="caption">Content is text, media and claims. Claims are what go out of date.</p></Reveal>
+      <Reveal at={3}><p className="lead">Files don't go stale. Claims do.</p></Reveal>
     </Frame>
   )
 }
