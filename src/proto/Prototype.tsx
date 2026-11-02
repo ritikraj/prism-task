@@ -87,22 +87,21 @@ export default function Prototype() {
         {route === 'merge' && <Merge />}
         {allOpen && <AllChanges />}
       </div>
-      {/* The guide belongs to the presentation: docked under the app so it never covers a panel footer. */}
+      {/* The guide belongs to the presentation. Open, it is docked under the app; collapsed, it floats bottom right. */}
       <div className={`p-caption ${guide ? '' : 'mini'}`}>
-        {guide ? <>
+        {guide && <>
           <span className="p-caption-n">{gi >= 0 ? `Step ${gi + 1} of ${GUIDE.length}` : 'Off the guided path'}</span>
-          <span className="p-grow">{gi >= 0 ? GUIDE[gi].caption : 'Explore freely. Use the dots to return to the guided path.'}</span>
-          <span className="p-dots">{GUIDE.map((g, i) => <button key={g.route} aria-label={`Step ${i + 1}`} className={i === gi ? 'on' : ''} onClick={() => go(g.route)} />)}</span>
-          <button className="p-link" onClick={reset}>Reset demo</button>
-          {fullBtn}
-          <button className="p-icon" aria-label="Collapse guide" title="Collapse" onClick={() => set({ guide: false })}><Ic d="M6 9l6 6 6-6" /></button>
-        </> : <>
-          <span className="p-grow" />
-          <button className="p-icon" aria-label="Previous step" title="Previous step" disabled={gi <= 0} onClick={() => go(GUIDE[gi - 1].route)}><Ic d="M15 6l-6 6 6 6" /></button>
-          <button className="p-icon" aria-label="Next step" title="Next step" disabled={gi < 0 || gi === GUIDE.length - 1} onClick={() => go(GUIDE[gi + 1].route)}><Ic d="M9 6l6 6-6 6" /></button>
-          {fullBtn}
-          <button className="p-icon" aria-label="Open guide" title="Open guide" onClick={() => set({ guide: true })}><Ic d="M6 15l6-6 6 6" /></button>
+          <span className="p-grow">{gi >= 0 ? GUIDE[gi].caption : 'Explore freely. Next takes you back to the guided path.'}</span>
         </>}
+        <span className="p-steps">
+          <button className="p-icon" aria-label="Previous step" title="Previous step" disabled={gi <= 0} onClick={() => go(GUIDE[gi - 1].route)}><Ic d="M15 6l-6 6 6 6" /></button>
+          <button className="p-icon" aria-label="Next step" title="Next step" disabled={gi === GUIDE.length - 1} onClick={() => go(GUIDE[gi + 1].route)}><Ic d="M9 6l6 6-6 6" /></button>
+        </span>
+        {guide && <button className="p-link" onClick={reset}>Reset demo</button>}
+        {fullBtn}
+        {guide
+          ? <button className="p-icon" aria-label="Collapse guide" title="Collapse" onClick={() => set({ guide: false })}><Ic d="M6 9l6 6 6-6" /></button>
+          : <button className="p-icon" aria-label="Open guide" title="Open guide" onClick={() => set({ guide: true })}><Ic d="M6 15l6-6 6 6" /></button>}
       </div>
       {toast && <div className="p-toast">{toast}</div>}
     </div>

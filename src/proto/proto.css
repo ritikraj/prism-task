@@ -83,11 +83,13 @@
 
 /* ---------- guide: docked under the app; it belongs to the presentation, so it stays neutral ---------- */
 .p-caption { flex: none; display: flex; align-items: center; gap: 16px; min-height: 48px; padding: 6px 12px 6px 18px; font-size: 13px; background: #1c1917; color: #fafaf9; }
-.p-caption.mini { min-height: 40px; gap: 2px; padding: 4px 8px; }
+/* collapsed: a floating, content-width pill at the bottom right; it lifts above a panel footer */
+.p-caption.mini { position: absolute; right: 16px; bottom: 16px; z-index: 30; min-height: 0; gap: 2px; padding: 5px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0, 0, 0, .28); }
+.p-root:has(.p-scrim) .p-caption.mini { bottom: 84px; }
+.p-steps { display: flex; gap: 2px; }
+.p-caption:not(.mini) .p-steps { padding: 0 6px; border-left: 1px solid rgba(255, 255, 255, .14); border-right: 1px solid rgba(255, 255, 255, .14); }
+:root[data-theme="dark"] .p-caption:not(.mini) .p-steps { border-color: rgba(0, 0, 0, .12); }
 .p-caption-n { opacity: .6; white-space: nowrap; }
-.p-dots { display: flex; gap: 6px; }
-.p-dots button { width: 8px; height: 8px; border-radius: 50%; border: 0; padding: 0; background: currentColor; opacity: .3; cursor: pointer; }
-.p-dots button.on { opacity: 1; }
 .p-caption .p-link { color: inherit; opacity: .8; white-space: nowrap; }
 .p-icon { border: 0; background: none; color: inherit; opacity: .8; cursor: pointer; display: grid; place-items: center; width: 28px; height: 28px; border-radius: var(--p-r-sm); }
 .p-icon:hover:not(:disabled) { background: rgba(255, 255, 255, .12); opacity: 1; }
