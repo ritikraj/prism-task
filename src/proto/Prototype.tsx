@@ -6,10 +6,10 @@ import {
   sellersAtRisk, today, type Bucket,
 } from '../data/ledgerly'
 import {
-  useProto, notHere, groups, judgment, GUIDE, ORDER, allDone, bucketDone, CHANGE_ROUTES, LIBRARY_ROUTES, MODAL_ROUTES, CLAIM_ROUTES, scanLinked,
+  useProto, notHere, groups, judgment, GUIDE, ORDER, allDone, bucketDone, spotsLeft, CHANGE_ROUTES, LIBRARY_ROUTES, MODAL_ROUTES, CLAIM_ROUTES, scanLinked,
   type Route,
 } from './store'
-import { Conf, Head, Ic, Sheet, Stats } from './ui'
+import { AiBadge, Conf, Head, Ic, Sheet, Stats } from './ui'
 import { Asset, Claim, Claims, Library, Merge, Scan } from './Screens3'
 
 const SCREENS: Record<Route, () => JSX.Element> = {
@@ -111,26 +111,35 @@ function ChangeSheet() {
 
 const statusA = (s: Parameters<typeof allDone>[0] & { live: boolean }) => (allDone(s) ? 'Published' : s.live ? 'Partly published' : '')
 
+// A thin bar on a card's bottom border. Hidden until work starts; green when done.
+const CardProgress = ({ of }: { of: number }) =>
+  of > 0 ? <span className={`p-card-progress ${of >= 1 ? 'done' : ''}`} role="progressbar" aria-valuenow={Math.round(of * 100)}><span style={{ width: `${Math.min(of, 1) * 100}%` }} /></span> : null
+
 // 1. Home: what needs attention (a scrolling row of cards), then the library at a glance.
 function Home() {
   const s = useProto()
-  const { go, set, live, merged, scanDone } = s
-  const a = statusA(s)
+  const { go, set, merged } = s
   const total = useAllRows().length
+  // Progress sits on each card's bottom edge instead of a status chip.
+  const changeDone = allDone(s) ? change.places
+    : lanes.tokens + ORDER.reduce((n, _, bi) => n + bucketDone(s, bi), 0) + (s.retired ? buckets[3].places : 0)
   const cards = [
     <article key="a" className="p-change-card" onClick={() => go('impact')}>
-      <div className="p-card-top"><span className="p-chip">1 fact changed</span><span className="p-grow" />{a && <span className={`p-chip ${a === 'Published' ? 'ok' : ''}`}>{a}</span>}</div>
+      <div className="p-card-top"><span className="p-chip">1 fact changed</span></div>
       <h2>{change.title}</h2>
       <p className="p-muted p-small">{change.source} sync, {change.synced}.</p>
       <Stats items={[[<b>{change.places}</b>, 'places'], [<b>{buckets[0].places}</b>, 'urgent']]} />
+      <CardProgress of={changeDone / change.places} />
     </article>,
     <article key="c" className="p-change-card" onClick={() => go('scan')}>
-      <div className="p-card-top"><span className="p-chip">Scan result</span><span className="p-grow" />{Object.keys(scanDone).length > 0 && <span className="p-chip">In progress</span>}</div>
-      <h2><span className="ai-ic" /> AI found {scan.total} spots that could become tokens</h2>
+      <div className="p-card-top"><AiBadge label="Scan result" /></div>
+      <h2>We found {scan.total} spots that could become tokens</h2>
       <p className="p-muted p-small">Once linked, the next change updates them by itself.</p>
+      <CardProgress of={(scan.total - spotsLeft(s)) / scan.total} />
     </article>,
     <article key="d" className="p-change-card" onClick={() => go('merge')}>
-      <div className="p-card-top"><span className="p-chip">Duplicates</span><span className="p-grow" />{merged && <span className="p-chip ok">Merged</span>}</div>
+      <div className="p-card-top"><span className="p-chip">Duplicates</span></div>
+      <CardProgress of={merged ? 1 : 0} />
       <h2>{merge.versions} versions of {merge.asset}</h2>
       <p className="p-muted p-small">Merge them and future changes touch {merge.keep} assets, not {merge.versions}.</p>
     </article>,
@@ -261,7 +270,7 @@ function useAllRows(): Row[] {
   const s = useProto()
   return [
     [change.title, '1 fact changed', statusA(s), change.places, () => s.go('impact')],
-    [`AI found ${scan.total} spots that could become tokens`, 'Scan result', Object.keys(s.scanDone).length > 0 ? 'In progress' : '', scan.total, () => s.go('scan')],
+    [`We found ${scan.total} spots that could become tokens`, 'Scan result', Object.keys(s.scanDone).length > 0 ? 'In progress' : '', scan.total, () => s.go('scan')],
     [`${merge.versions} versions of ${merge.asset}`, 'Duplicates', s.merged ? 'Merged' : '', '—', () => s.go('merge')],
     ...pastChanges.map(([t, k, p]): Row => [t, k, 'Closed', p, notHere]),
   ]
@@ -276,7 +285,7 @@ function AllChanges() {
       <table className="p-table">
         <thead><tr><th>Item</th><th>Type</th><th>Status</th><th>Places</th></tr></thead>
         <tbody>{rows.map(([t, k, st, p, open]) => (
-          <tr key={t} onClick={open}><td><b>{t}</b></td><td><span className="p-chip">{k}</span></td><td>{st && <span className={`p-chip ${st === 'Published' || st === 'Merged' ? 'ok' : ''}`}>{st}</span>}</td><td>{p}</td></tr>
+          <tr key={t} onClick={open}><td><b>{t}</b></td><td>{k === 'Scan result' ? <AiBadge label={k} /> : <span className="p-chip">{k}</span>}</td><td>{st && <span className={`p-chip ${st === 'Published' || st === 'Merged' ? 'ok' : ''}`}>{st}</span>}</td><td>{p}</td></tr>
         ))}</tbody>
       </table>
     </Sheet>
@@ -371,7 +380,7 @@ function BucketView() {
       {nav}{head}
       <section className="p-sec">
         <div className="p-row p-table-head">
-          <span className="p-card-title p-grow ai-label"><span className="ai-ic" /><span className="ai-text">Same sentence, found by AI · {mine.length} groups</span></span>
+          <span className="p-card-title p-grow ai-label"><AiBadge />We found the same sentence in {mine.length} groups</span>
           {open.length > 0 ? <button className="p-btn primary" onClick={() => publish(open)}>Approve & Publish all {open.length}</button> : <span className="p-chip ok">All published</span>}
         </div>
         {mine.map(g => {
@@ -403,7 +412,7 @@ function BucketView() {
           <div key={j.id} className={`p-card p-judge ${jDone[j.id] ? 'done' : ''}`}>
             <div className="p-row"><span className="p-muted p-small p-grow">{j.kind} · {j.where}</span><Conf c={j.confidence} /></div>
             <div className="p-diff"><s>{j.old}</s><span>{j.next}</span></div>
-            {j.working && <div className="p-working"><span className="p-small ai-label"><span className="ai-ic" /><span className="ai-text">How AI got here</span></span>{j.working}</div>}
+            {j.working && <div className="p-working"><span className="p-small ai-label"><AiBadge />How we got here</span>{j.working}</div>}
             <div className="p-actions">
               {jDone[j.id] ? <span className="p-chip ok">{jDone[j.id] === 'ok' ? 'Published' : 'Sent to Product marketing'}</span> : <>
                 <button className={`p-btn ${j.route === 'Admin' ? 'primary' : ''}`} onClick={() => decide(j.id, 'ok')}>Approve & Publish</button>

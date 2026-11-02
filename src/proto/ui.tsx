@@ -3,6 +3,8 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { Confidence } from './store'
 
 export const Conf = ({ c }: { c: Confidence }) => <span className={`p-chip conf-${c.toLowerCase()}`}>{c} confidence</span>
+// AI-made content is marked by this badge, so the copy itself can say "we".
+export const AiBadge = ({ label = 'AI' }: { label?: string }) => <span className="p-chip ai"><span className="ai-ic" />{label}</span>
 export const Pri = ({ p }: { p: string }) => <span className={`p-chip pri-${p.toLowerCase()}`}>{p}</span>
 export const Head = ({ title, sub, children }: { title?: string; sub?: ReactNode; children?: ReactNode }) => (
   <div className="p-head">

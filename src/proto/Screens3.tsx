@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { change, claimHistory, facts, impactAssets, library, merge, messages, scan, v7, type LibAsset, type Part } from '../data/ledgerly'
 import { useProto, notHere, scanSpots, scanLinked, spotsLeft, allDone } from './store'
-import { Dropdown, Head, Sheet } from './ui'
+import { AiBadge, Dropdown, Head, Sheet } from './ui'
 
 const healthClass = (h: string) => (h === 'Current' ? 'ok' : h === 'In review' ? 'review' : 'warn')
 const healthRank = (h: string) => (h === 'Current' ? 2 : h === 'In review' ? 1 : 0)
@@ -118,7 +118,7 @@ export function Merge() {
         </div>
       )}
       <div className="p-card">
-        <div className="p-card-title ai-label"><span className="ai-ic" /><span className="ai-text">AI proposal</span></div>
+        <div className="p-card-title ai-label"><AiBadge />Our proposal</div>
         <p>Keep 1 master and 2 regional variants linked to it. Archive {merge.archive}. Usage history and share links move to the master.</p>
         {merge.result.map(r => <div key={r} className="p-row"><span className="p-grow">{r}</span></div>)}
         <div className="p-banner">Future pricing changes touch {merge.keep} assets here, not {merge.versions}.</div>

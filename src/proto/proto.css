@@ -236,6 +236,12 @@
 .p-carousel::-webkit-scrollbar { display: none; }
 .p-carousel > .p-change-card { flex: 0 0 300px; scroll-snap-align: start; }
 .p-change-card h2 { font-size: 15.5px; }
+.p-change-card { position: relative; overflow: hidden; }
+.p-card-progress { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: var(--p-head); }
+.p-card-progress > span { display: block; height: 100%; background: var(--p-accent); transition: width 300ms; }
+.p-card-progress.done > span { background: var(--p-ok); }
+.p-chip.ai { display: inline-flex; align-items: center; gap: 4px; background: var(--p-accent-soft); color: var(--p-accent); }
+.ai-label .p-chip.ai { margin-left: 0; }
 .p-cdots { display: flex; justify-content: center; gap: 6px; margin-top: 12px; }
 .p-cdots button { width: 6px; height: 6px; padding: 0; border: 0; border-radius: 3px; background: var(--p-line); cursor: pointer; transition: width 150ms, background 150ms; }
 .p-cdots button.on { width: 18px; background: var(--p-accent); }
