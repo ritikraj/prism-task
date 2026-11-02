@@ -460,3 +460,15 @@
 .p-hcard:hover .p-hcard-go { color: var(--p-ink-2); transform: translateX(2px); }
 .p-sec-note { margin: -4px 0 2px; max-width: 760px; font-size: 13px; color: var(--p-muted); }
 .p-kind { font-weight: 600; color: var(--p-ink-2); }
+/* closer look: a decision about the old line (keep, flag, remove, rewrite) instead of a new sentence */
+.p-prop { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.p-prop-old { font-size: 14px; color: var(--p-ink); }
+.p-prop-old.gone { color: var(--p-del); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--p-del) 60%, transparent); }
+.p-prop-act { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px 3px 7px; border-radius: 6px; font-size: 13px; background: var(--p-head); color: var(--p-ink-2); }
+.p-prop-act b { font-weight: 600; }
+.p-prop-act span { color: var(--p-ink-2); }
+.p-prop-act.keep { background: var(--p-ok-bg); } .p-prop-act.keep b, .p-prop-act.keep svg { color: var(--p-ok); }
+.p-prop-act.flag { background: var(--p-warn-bg); } .p-prop-act.flag b, .p-prop-act.flag svg { color: var(--p-warn); }
+.p-prop-act.remove { background: var(--p-del-bg); } .p-prop-act.remove b, .p-prop-act.remove svg { color: var(--p-del); }
+.p-prop-act.rewrite { background: var(--p-accent-soft); } .p-prop-act.rewrite b, .p-prop-act.rewrite svg { color: var(--p-accent); }
+.p-lrow.done .p-prop { opacity: .5; }

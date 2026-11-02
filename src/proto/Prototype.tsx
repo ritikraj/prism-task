@@ -7,7 +7,7 @@ import {
 } from '../data/ledgerly'
 import {
   useProto, notHere, groups, judgment, GUIDE, ORDER, allDone, bucketDone, spotsLeft, CHANGE_ROUTES, LIBRARY_ROUTES, MODAL_ROUTES, CLAIM_ROUTES, scanLinked,
-  type Route,
+  type Act, type JItem, type Route,
 } from './store'
 import { AiBadge, Avatar, Avatars, BtnIc, Diff, Head, ICON, Ic, Logo, Meta, SecHead, Sheet, Stats, Tile } from './ui'
 import { Asset, Claim, Claims, Library, Merge, Scan } from './Screens3'
@@ -345,6 +345,18 @@ function Overview() {
 
 const Urg = ({ u }: { u: Bucket }) => <span className={`p-chip urg-${u.toLowerCase()}`}>{u}</span>
 
+// What a closer-look item proposes. Only an edit is a diff; keep, flag, remove and rewrite are decisions about the old line.
+const ACT: Record<Exclude<Act, 'edit'>, [string, string]> = {
+  keep: ['No change', ICON.check], flag: ['Flag', ICON.flag], remove: ['Remove', 'M6 6l12 12M18 6L6 18'],
+  rewrite: ['New line needed', 'M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z'],
+}
+const Proposal = ({ j }: { j: JItem }) => j.act === 'edit' ? <Diff old={j.old} next={j.next} /> : (
+  <div className="p-prop">
+    <div className={`p-prop-old ${j.act === 'remove' ? 'gone' : ''}`}>{j.old}</div>
+    <div className={`p-prop-act ${j.act}`}><Ic d={ACT[j.act][1]} size={13} /><b>{ACT[j.act][0]}</b><span>{j.next}</span></div>
+  </div>
+)
+
 // Step 2: one bucket. Tick the same-sentence groups, publish them once from the footer; judgment items one by one.
 function BucketView() {
   const s = useProto()
@@ -440,7 +452,7 @@ function BucketView() {
           const toPmm = j.route !== 'Admin'
           return (
             <div key={j.id} className={`p-lrow p-jrow ${done ? 'done' : ''}`}>
-              <Diff old={j.old} next={j.next} />
+              <Proposal j={j} />
               <div className="p-jfoot">
                 <div className="p-lmeta">
                   <span className="p-kind">{j.kind}</span><span>{j.where}</span>

@@ -33,78 +33,81 @@ export const groups = wordingGroups.map(([old, places], i) => ({
   samples: [0, 1, 2].map(k => POOL[(i * 3 + k) % POOL.length]),
 }))
 
-export type JItem = { id: string; bucket: number; kind: string; where: string; old: string; next: string; working?: string; confidence: Confidence; route: 'Admin' | 'Product marketing' }
+// What the closer look proposes: a new sentence (edit), or a decision about the old one.
+export type Act = 'edit' | 'keep' | 'flag' | 'remove' | 'rewrite'
+export type JItem = { id: string; bucket: number; kind: string; where: string; old: string; act: Act; next: string; working?: string; confidence: Confidence; route: 'Admin' | 'Product marketing' }
 const starter = Number(facts[1].value.match(/\d+/)![0])
 const save = (seats: number, pct: number) => `$${(seats * starter * 12 * pct / 100).toLocaleString('en-US')}`
 // "Needs a closer look": places where the 20% shows up but no rule can swap it safely.
 // The kind is the reason: math to redo, a claim that may no longer be true, a number baked into an image
 // or video, signed terms, a translation, wording that hides the number, or a 20% that is not the discount at all.
+// next is the new sentence for an edit, and a short note for every other act.
 // 28 in total, in urgency order (5 Urgent, 9 High, 14 Medium). 8 go to Product marketing, 20 stay with the admin.
-type Seed = [kind: string, where: string, old: string, next: string, working: string, confidence: Confidence, pmm?: boolean]
+type Seed = [kind: string, where: string, old: string, act: Act, next: string, working: string, confidence: Confidence, pmm?: boolean]
 const SEEDS: Seed[] = [
   // Urgent
-  ['Math', 'Norvik ROI one-pager, page 2', `"${derived.text} $${derived.before.toLocaleString('en-US')} a year."`, `"${derived.text} $${derived.after.toLocaleString('en-US')} a year."`,
+  ['Math', 'Norvik ROI one-pager, page 2', `"${derived.text} $${derived.before.toLocaleString('en-US')} a year."`, 'edit', `"${derived.text} $${derived.after.toLocaleString('en-US')} a year."`,
     `${derived.seats} seats × $${starter} × 12 months × 15% = $${derived.after.toLocaleString('en-US')}. Uses {starter_price} and {annual_discount}.`, 'High'],
-  ['Claim', 'Competitive overview deck, slide 5', '"The best annual discount in our category."', 'Remove the claim. Suggest "Save 15% with annual billing."',
+  ['Claim', 'Competitive overview deck, slide 5', '"The best annual discount in our category."', 'edit', '"Save 15% with annual billing."',
     'Rivalset offers 18% on annual plans, so "best" is no longer true. This is positioning, so Product marketing decides.', 'Medium', true],
-  ['Contract', 'Halden renewal proposal, page 5', '"Your renewal includes 20% off annual billing, as agreed on Oct 12."', 'Keep as is. Halden signed at 20% until the March renewal.',
+  ['Contract', 'Halden renewal proposal, page 5', '"Your renewal includes 20% off annual billing, as agreed on Oct 12."', 'keep', 'Halden signed at 20% until the March renewal.',
     'Matched to a signed order form in the CRM. Changing it would break a commitment.', 'High'],
-  ['Image', 'Clearwater pricing deck, slide 11', 'Chart "Monthly vs annual cost" shows 20% saved.', 'Flag the chart for redesign.',
+  ['Image', 'Clearwater pricing deck, slide 11', 'Chart "Monthly vs annual cost" shows 20% saved.', 'flag', 'Redesign the chart. The number is in the image.',
     'The number is inside an image, read with text recognition. No token can reach it.', 'Low'],
-  ['Video', 'Q3 customer webinar, 14:20', 'Presenter says "20% off".', 'Flag: add an on-screen correction, or retire the clip.',
+  ['Video', 'Q3 customer webinar, 14:20', 'Presenter says "20% off".', 'flag', 'Add an on-screen correction, or retire the clip.',
     'Found in the transcript. A person decides if the clip is still worth keeping.', 'Low'],
   // High
-  ['Math', 'Mid-market proposal template, page 4', `"A 20-seat team saves ${save(20, 20)} a year."`, `"A 20-seat team saves ${save(20, 15)} a year."`,
+  ['Math', 'Mid-market proposal template, page 4', `"A 20-seat team saves ${save(20, 20)} a year."`, 'edit', `"A 20-seat team saves ${save(20, 15)} a year."`,
     `20 seats × $${starter} × 12 months × 15% = ${save(20, 15)}.`, 'High'],
-  ['Not the discount', 'Onboarding deck, slide 12', '"Teams onboard 20% faster with guided setup."', 'Keep as is. This 20% is onboarding speed.',
+  ['Not the discount', 'Onboarding deck, slide 12', '"Teams onboard 20% faster with guided setup."', 'keep', 'This 20% is onboarding speed, not price.',
     'Same number, different fact. Nothing in the sentence is about price.', 'High'],
-  ['Claim', 'Rivalset battlecard, section 2', '"Our annual discount beats Rivalset by 2 points."', 'Remove. Rivalset now gives 18%, we give 15%.',
+  ['Claim', 'Rivalset battlecard, section 2', '"Our annual discount beats Rivalset by 2 points."', 'remove', 'No longer true. Rivalset gives 18%, we give 15%.',
     'The comparison flipped. {rivalset_price} lists 18% annual. The battlecard needs a new angle.', 'Medium', true],
-  ['Translation', 'Pricing overview, EMEA (German), slide 4', '"20 % Rabatt bei jährlicher Zahlung."', '"15 % Rabatt bei jährlicher Zahlung."',
+  ['Translation', 'Pricing overview, EMEA (German), slide 4', '"20 % Rabatt bei jährlicher Zahlung."', 'edit', '"15 % Rabatt bei jährlicher Zahlung."',
     'German copy of the EMEA variant. A native reader should confirm the wording.', 'Medium'],
-  ['Wording', 'Annual billing FAQ, section 2', '"Pay yearly and get one fifth off."', '"Pay yearly and save 15%."',
+  ['Wording', 'Annual billing FAQ, section 2', '"Pay yearly and get one fifth off."', 'edit', '"Pay yearly and save 15%."',
     '"One fifth" is 20% written in words, so the token match missed it.', 'Medium'],
-  ['Claim', 'Q4 promo battlecard', '"Biggest discount of the year: 20% off annual plans."', 'Rewrite the hook. 15% is not the "biggest" offer.',
+  ['Claim', 'Q4 promo battlecard', '"Biggest discount of the year: 20% off annual plans."', 'rewrite', 'At 15% this is not the "biggest" offer. The hook needs a new angle.',
     'A campaign headline built on the old number. Product marketing owns campaign copy.', 'Medium', true],
-  ['Image', 'Partner pricing guide, page 6', 'Price table image shows "Annual: 20% off".', 'Flag the table for redesign.',
+  ['Image', 'Partner pricing guide, page 6', 'Price table image shows "Annual: 20% off".', 'flag', 'Redesign the price table.',
     'Pasted as a picture, so no token can reach it.', 'Low'],
-  ['Contract', 'Enterprise order form template, clause 4.2', '"Customer receives a 20% discount for annual prepayment."', '"Customer receives a 15% discount for annual prepayment."',
+  ['Contract', 'Enterprise order form template, clause 4.2', '"Customer receives a 20% discount for annual prepayment."', 'edit', '"Customer receives a 15% discount for annual prepayment."',
     'Template for new deals only. Signed order forms are left alone.', 'High'],
-  ['Video', 'Product tour video, 03:10', 'Narrator says "save 20% on annual".', 'Flag: re-record the line or trim the clip.',
+  ['Video', 'Product tour video, 03:10', 'Narrator says "save 20% on annual".', 'flag', 'Re-record the line or trim the clip.',
     'Found in the transcript. Re-recording costs more than trimming, so a person decides.', 'Low'],
   // Medium
-  ['Math', 'Renewal email template', `"Switch to annual and keep ${save(10, 20)} a year."`, `"Switch to annual and keep ${save(10, 15)} a year."`,
+  ['Math', 'Renewal email template', `"Switch to annual and keep ${save(10, 20)} a year."`, 'edit', `"Switch to annual and keep ${save(10, 15)} a year."`,
     `10 seats × $${starter} × 12 months × 15% = ${save(10, 15)}.`, 'High'],
-  ['Claim', 'Website comparison page, hero', '"Twice the savings of Rivalset."', 'Remove. Not true at 15% against 18%.',
+  ['Claim', 'Website comparison page, hero', '"Twice the savings of Rivalset."', 'remove', 'Not true at 15% against 18%.',
     'A claim that depends on two facts that both changed. Product marketing writes the new line.', 'Medium', true],
-  ['Not the discount', 'Security overview, slide 3', '"20% fewer access reviews with SSO."', 'Keep as is. This 20% is about access reviews.',
+  ['Not the discount', 'Security overview, slide 3', '"20% fewer access reviews with SSO."', 'keep', 'This 20% is about access reviews, not price.',
     'Same number, different fact. Nothing in the sentence is about price.', 'High'],
-  ['Translation', 'Pricing overview, EMEA (French), slide 4', '"20 % de remise sur l’abonnement annuel."', '"15 % de remise sur l’abonnement annuel."',
+  ['Translation', 'Pricing overview, EMEA (French), slide 4', '"20 % de remise sur l’abonnement annuel."', 'edit', '"15 % de remise sur l’abonnement annuel."',
     'French copy of the EMEA variant. A native reader should confirm the wording.', 'Medium'],
-  ['Wording', 'Starter plan one-pager', '"Annual plans: 2 months free."', '"Annual plans: save 15%."',
+  ['Wording', 'Starter plan one-pager', '"Annual plans: 2 months free."', 'edit', '"Annual plans: save 15%."',
     '"2 months free" was a rounded way to say 20%. At 15% it is under 2 months, so the phrase no longer works.', 'Medium'],
-  ['Claim', 'Customer story: Norvik, quote', 'Quote: "The 20% annual discount sealed it for us."', 'Keep the quote. Add "Pricing at time of purchase."',
-    'A customer’s own words cannot be edited. Product marketing decides whether the story still runs.', 'Medium', true],
-  ['Image', 'Webinar slides PDF, slide 18', 'Screenshot of the pricing page shows 20%.', 'Flag: replace the screenshot.',
+  ['Claim', 'Customer story: Norvik, quote', 'Quote: "The 20% annual discount sealed it for us."', 'keep', 'A customer’s own words. Add "Pricing at time of purchase."',
+    'Customer quotes cannot be edited. Product marketing decides whether the story still runs.', 'Medium', true],
+  ['Image', 'Webinar slides PDF, slide 18', 'Screenshot of the pricing page shows 20%.', 'flag', 'Replace the screenshot.',
     'The number is inside a screenshot, read with text recognition.', 'Low'],
-  ['Math', 'Annual billing FAQ, section 5', `"Most teams save around $700 a year."`, `"Most teams save around $520 a year."`,
+  ['Math', 'Annual billing FAQ, section 5', '"Most teams save around $700 a year."', 'edit', '"Most teams save around $520 a year."',
     `Rounded from the 10-seat example: ${save(10, 15)} at 15%.`, 'Medium'],
-  ['Contract', 'Partner reseller agreement, schedule B', '"Partners may pass on up to 20% annual discount."', 'Keep until Finance updates partner terms.',
+  ['Contract', 'Partner reseller agreement, schedule B', '"Partners may pass on up to 20% annual discount."', 'keep', 'Stays until Finance updates partner terms.',
     'Partner terms change on their own schedule. This only flags the gap.', 'Medium'],
-  ['Claim', 'Sales talk track, objection handling', '"If they push on price, lead with the 20% annual discount."', 'Rewrite to lead with compliance and audit trails.',
+  ['Claim', 'Sales talk track, objection handling', '"If they push on price, lead with the 20% annual discount."', 'rewrite', 'Lead with compliance and audit trails instead.',
     'The Q4 messaging brief says lead with compliance, not price.', 'Medium', true],
-  ['Video', 'Sales kickoff recording, 41:05', 'VP says "20% is our best lever".', 'Flag: internal only. Add a note in the description.',
+  ['Video', 'Sales kickoff recording, 41:05', 'VP says "20% is our best lever".', 'flag', 'Internal only. Add a note in the description.',
     'Internal recording. A note is enough, nobody re-records a kickoff.', 'Low'],
-  ['Claim', 'LinkedIn ad copy, variant B', '"Save 20%. Only on annual."', '"Save 15% on annual billing."',
+  ['Claim', 'LinkedIn ad copy, variant B', '"Save 20%. Only on annual."', 'edit', '"Save 15% on annual billing."',
     'Paid campaign copy. Product marketing approves ad changes.', 'Medium', true],
-  ['Wording', 'Help center: Billing basics', '"Annual subscribers get 20 percent off."', '"Annual subscribers get 15 percent off."',
+  ['Wording', 'Help center: Billing basics', '"Annual subscribers get 20 percent off."', 'edit', '"Annual subscribers get 15 percent off."',
     '"20 percent" is spelled out, so the token match missed it.', 'High'],
-  ['Claim', 'Analyst briefing deck, slide 9', '"Most generous annual pricing in the mid-market."', 'Remove, or rework after a fresh market check.',
+  ['Claim', 'Analyst briefing deck, slide 9', '"Most generous annual pricing in the mid-market."', 'remove', 'Needs a fresh market check before it goes out again.',
     'A market claim. Product marketing should re-check it before it goes out.', 'Low', true],
 ]
 const bucketOf = (i: number) => (i < judgmentSplit[0] ? 0 : i < judgmentSplit[0] + judgmentSplit[1] ? 1 : 2)
-export const judgment: JItem[] = SEEDS.map(([kind, where, old, next, working, confidence, pmm], i) => ({
-  id: `j${i + 1}`, bucket: bucketOf(i), kind, where, old, next, working, confidence, route: pmm ? 'Product marketing' : 'Admin',
+export const judgment: JItem[] = SEEDS.map(([kind, where, old, act, next, working, confidence, pmm], i) => ({
+  id: `j${i + 1}`, bucket: bucketOf(i), kind, where, old, act, next, working, confidence, route: pmm ? 'Product marketing' : 'Admin',
 }))
 
 type S = {
