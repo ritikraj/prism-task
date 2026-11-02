@@ -298,3 +298,7 @@ kbd { font: 500 12px var(--font); border: 1px solid var(--line); border-bottom-w
 .gate-top { padding-bottom: 22px; }
 .gate-bottom { padding-top: 22px; }
 .gate-bar { top: -13px; height: 28px; }
+/* Two kinds of change: example lists inside the cards */
+.examples { margin: 4px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.examples li { padding-left: 16px; position: relative; }
+.examples li::before { content: ""; position: absolute; left: 0; top: .65em; width: 6px; height: 6px; border-radius: 50%; background: var(--muted); }

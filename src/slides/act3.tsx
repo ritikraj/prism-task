@@ -56,8 +56,20 @@ export function TwoKinds() {
   return (
     <Frame eyebrow="Two kinds of change">
       <Cards items={[
-        { at: 0, title: 'Numbers', body: `Annual discount: ${change.from} to ${change.to}.` },
-        { at: 1, title: 'Narrative', body: 'Stop leading with price. Lead with compliance.' },
+        { at: 0, title: 'Numbers', meta: 'One right value. A token can hold it.', body: (
+          <ul className="examples">
+            <li>Annual discount: {change.from} → {change.to}</li>
+            <li>Starter price: $27 → $29 per seat</li>
+            <li>Uptime SLA: 99.5% → 99.9%</li>
+            <li>Free trial: 30 days → 14 days</li>
+          </ul>) },
+        { at: 1, title: 'Narrative', meta: 'No single value. It has to be read for meaning.', body: (
+          <ul className="examples">
+            <li>Stop leading with price. Lead with compliance.</li>
+            <li>The main rival is no longer Rivalset. It is Northwind.</li>
+            <li>Drop “cheapest in the category” everywhere.</li>
+            <li>Sell to mid-market, not small teams.</li>
+          </ul>) },
       ]} />
       <Reveal at={2}><p className="lead">Tokens can carry numbers. Only reading for meaning can carry narrative.</p></Reveal>
     </Frame>
