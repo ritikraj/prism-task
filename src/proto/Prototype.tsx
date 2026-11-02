@@ -9,7 +9,7 @@ import {
   useProto, notHere, groups, judgment, GUIDE, ORDER, allDone, bucketDone, spotsLeft, CHANGE_ROUTES, LIBRARY_ROUTES, MODAL_ROUTES, CLAIM_ROUTES, scanLinked,
   type Route,
 } from './store'
-import { AiBadge, Avatar, Avatars, BtnIc, Diff, Head, ICON, Ic, Meta, SecHead, Sheet, Stats, Tile } from './ui'
+import { AiBadge, Avatar, Avatars, BtnIc, Diff, Head, ICON, Ic, Logo, Meta, SecHead, Sheet, Stats, Tile } from './ui'
 import { Asset, Claim, Claims, Library, Merge, Scan } from './Screens3'
 
 const SCREENS: Record<Route, () => JSX.Element> = {
@@ -54,7 +54,7 @@ export default function Prototype() {
     <div className="p-root" ref={root}>
       <div className="p-app">
         <nav className="p-rail">
-          <div className="p-mark">P</div>
+          <span className="p-mark"><Logo /></span>
           {RAIL.map(([label, d, r]) => (
             <button key={label} className={`p-rail-btn ${r === section ? 'on' : ''}`} aria-label={label} onClick={() => (r ? go(r) : notHere())}>
               <span className="p-rail-ic"><Ic d={d} size={19} /></span><span className="p-rail-label">{label}</span>

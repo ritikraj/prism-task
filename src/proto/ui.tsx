@@ -60,6 +60,22 @@ export const Meta = ({ items }: { items: [string, ReactNode][] }) => (
 // A primary or secondary button label with a leading icon.
 export const BtnIc = ({ d, children }: { d: string; children: ReactNode }) => <><Ic d={d} size={15} />{children}</>
 
+// Prism mark: a crystal seen from above. Three facets, one per colour of the spectrum, meeting at a lit centre.
+export const Logo = ({ size = 36 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 40 40" role="img" aria-label="Prism">
+    <defs>
+      <linearGradient id="p-fa" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#ffb057" /><stop offset="1" stopColor="#f26a21" /></linearGradient>
+      <linearGradient id="p-fb" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#a78bfa" /><stop offset="1" stopColor="#6d3fe0" /></linearGradient>
+      <linearGradient id="p-fc" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#f0457a" /><stop offset="1" stopColor="#c13fd1" /></linearGradient>
+    </defs>
+    <rect width="40" height="40" rx="11" fill="#16121d" />
+    <path d="M20 6.5L7 29.5L20 22Z" fill="url(#p-fa)" />
+    <path d="M20 6.5L33 29.5L20 22Z" fill="url(#p-fb)" />
+    <path d="M7 29.5H33L20 22Z" fill="url(#p-fc)" />
+    <path d="M20 6.5V22M7 29.5L20 22L33 29.5" stroke="#fff" strokeOpacity=".55" strokeWidth=".8" strokeLinejoin="round" fill="none" />
+  </svg>
+)
+
 // A tinted square holding an icon: the type of a card at a glance.
 export const Tile = ({ d, tone = 'accent' }: { d: string; tone?: 'accent' | 'ai' | 'warn' | 'ok' | 'muted' }) => (
   <span className={`p-tile ${tone}`}>{tone === 'ai' ? <span className="ai-ic" /> : <Ic d={d} size={18} />}</span>
