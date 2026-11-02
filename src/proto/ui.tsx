@@ -20,8 +20,11 @@ export const Ic = ({ d, size = 16 }: { d: string; size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>
 )
 
-// One big side modal (single changes, long lists). Esc closes only the topmost one.
-export function Sheet({ title, sub, tabs, onClose, children }: { title: string; sub?: ReactNode; tabs?: ReactNode; onClose: () => void; children: ReactNode }) {
+// Floating side panel: back + title + meta + close, a scrolling body, and an optional fixed footer
+// that holds the panel's actions. Esc closes only the topmost one.
+export function Sheet({ title, sub, tabs, onBack, footer, onClose, children }: {
+  title: string; sub?: ReactNode; tabs?: ReactNode; onBack?: () => void; footer?: ReactNode; onClose: () => void; children: ReactNode
+}) {
   const ref = useRef<HTMLElement>(null)
   useEffect(() => {
     const on = (e: KeyboardEvent) => {
@@ -34,18 +37,25 @@ export function Sheet({ title, sub, tabs, onClose, children }: { title: string; 
   return (
     <div className="p-scrim" onClick={onClose}>
       <section ref={ref} className="p-sheet" role="dialog" aria-label={title} onClick={e => e.stopPropagation()}>
-        <header className={`p-sheet-head ${tabs ? '' : 'solo'}`}>
-          <div className="p-head">
-            <div className="p-grow"><h1>{title}</h1>{sub && <p className="p-muted p-sub-line">{sub}</p>}</div>
-            <button className="p-icon" aria-label="Close" title="Close" onClick={onClose}><Ic d="M6 6l12 12M18 6L6 18" /></button>
+        <header className="p-sheet-head">
+          <div className="p-sheet-bar">
+            {onBack && <button className="p-ibtn" aria-label="Back" title="Back" onClick={onBack}><Ic d="M15 6l-6 6 6 6" size={18} /></button>}
+            <div className="p-grow"><h1>{title}</h1>{sub && <p className="p-sheet-sub">{sub}</p>}</div>
+            <button className="p-ibtn" aria-label="Close" title="Close" onClick={onClose}><Ic d="M6 6l12 12M18 6L6 18" size={18} /></button>
           </div>
           {tabs}
         </header>
         <div className="p-sheet-body">{children}</div>
+        {footer && <footer className="p-sheet-foot">{footer}</footer>}
       </section>
     </div>
   )
 }
+
+// Section heading inside a panel: a bold line with an optional tag, and a grey meta line under it.
+export const SecHead = ({ title, tag, meta }: { title: ReactNode; tag?: ReactNode; meta?: ReactNode }) => (
+  <div className="p-sec-head"><h2>{title}{tag}</h2>{meta && <p>{meta}</p>}</div>
+)
 
 // Custom dropdown (no native select). Closes on outside click or Esc.
 export function Dropdown({ label, value, options, onChange }: { label: string; value: string; options: string[]; onChange: (v: string) => void }) {

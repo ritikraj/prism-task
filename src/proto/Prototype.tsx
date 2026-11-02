@@ -9,7 +9,7 @@ import {
   useProto, notHere, groups, judgment, GUIDE, ORDER, allDone, bucketDone, spotsLeft, CHANGE_ROUTES, LIBRARY_ROUTES, MODAL_ROUTES, CLAIM_ROUTES, scanLinked,
   type Route,
 } from './store'
-import { AiBadge, Conf, Head, Ic, Sheet, Stats } from './ui'
+import { AiBadge, Conf, Head, Ic, SecHead, Sheet, Stats } from './ui'
 import { Asset, Claim, Claims, Library, Merge, Scan } from './Screens3'
 
 const SCREENS: Record<Route, () => JSX.Element> = {
@@ -21,6 +21,7 @@ const RAIL: [string, string, Route | null][] = [
   ['Claims', 'M4 9h16M4 15h16M10 3L8 21M16 3l-2 18', 'claims'],
   ['Library', 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z', 'library'],
 ]
+const GEAR = 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z'
 
 export default function Prototype() {
   const { route, base, guide, toast, claim, allOpen, go, set, reset } = useProto()
@@ -58,7 +59,7 @@ export default function Prototype() {
             <button key={label} className={`p-rail-btn ${r === section ? 'on' : ''}`} title={label} aria-label={label} onClick={() => (r ? go(r) : notHere())}><Ic d={d} size={20} /></button>
           ))}
           <div className="p-grow" />
-          <button className="p-rail-btn" title="Notifications" aria-label="Notifications" onClick={notHere}><Ic d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10 21h4" size={20} /></button>
+          <button className="p-rail-btn" title="Settings" aria-label="Settings" onClick={notHere}><Ic d={GEAR} size={20} /></button>
           <div className="p-avatar" title={`${admin.name}, ${admin.role}`}>{admin.initials}</div>
         </nav>
         <div className="p-body">
@@ -66,34 +67,33 @@ export default function Prototype() {
             {crumbs.map((c, i) => i < crumbs.length - 1
               ? <span key={c}><button className="p-crumb" onClick={() => go(section)}>{c}</button><span className="p-sep">/</span></span>
               : <span key={c} className="p-crumb-now">{c}</span>)}
-            <span className="p-grow" /><span className="p-muted p-small">{company.name} · {today}</span>
           </header>
           <div className="p-panel">
             <main className={`p-main ${page === 'library' ? 'fixed' : ''}`}><div className="p-container"><Screen /></div></main>
           </div>
         </div>
         {inChange && <ChangeSheet />}
-        {route === 'scan' && <Sheet title="Scan results" onClose={() => go(base)}><Scan /></Sheet>}
-        {route === 'merge' && <Sheet title={`${merge.versions} versions of ${merge.asset}`} onClose={() => go(base)}><Merge /></Sheet>}
+        {route === 'scan' && <Scan />}
+        {route === 'merge' && <Merge />}
         {allOpen && <AllChanges />}
       </div>
-      {guide ? (
-        <div className="p-caption">
+      {/* The guide belongs to the presentation: docked under the app so it never covers a panel footer. */}
+      <div className={`p-caption ${guide ? '' : 'mini'}`}>
+        {guide ? <>
           <span className="p-caption-n">{gi >= 0 ? `Step ${gi + 1} of ${GUIDE.length}` : 'Off the guided path'}</span>
           <span className="p-grow">{gi >= 0 ? GUIDE[gi].caption : 'Explore freely. Use the dots to return to the guided path.'}</span>
           <span className="p-dots">{GUIDE.map((g, i) => <button key={g.route} aria-label={`Step ${i + 1}`} className={i === gi ? 'on' : ''} onClick={() => go(g.route)} />)}</span>
           <button className="p-link" onClick={reset}>Reset demo</button>
           {fullBtn}
           <button className="p-icon" aria-label="Collapse guide" title="Collapse" onClick={() => set({ guide: false })}><Ic d="M6 9l6 6 6-6" /></button>
-        </div>
-      ) : (
-        <div className="p-fab">
+        </> : <>
+          <span className="p-grow" />
           <button className="p-icon" aria-label="Previous step" title="Previous step" disabled={gi <= 0} onClick={() => go(GUIDE[gi - 1].route)}><Ic d="M15 6l-6 6 6 6" /></button>
           <button className="p-icon" aria-label="Next step" title="Next step" disabled={gi < 0 || gi === GUIDE.length - 1} onClick={() => go(GUIDE[gi + 1].route)}><Ic d="M9 6l6 6-6 6" /></button>
-          <button className="p-icon" aria-label="Open guide" title="Open guide" onClick={() => set({ guide: true })}><Ic d="M6 15l6-6 6 6" /></button>
           {fullBtn}
-        </div>
-      )}
+          <button className="p-icon" aria-label="Open guide" title="Open guide" onClick={() => set({ guide: true })}><Ic d="M6 15l6-6 6 6" /></button>
+        </>}
+      </div>
       {toast && <div className="p-toast">{toast}</div>}
     </div>
   )
@@ -101,10 +101,15 @@ export default function Prototype() {
 
 // The annual discount change. No tabs: urgency cards, then one bucket at a time. Approving publishes.
 function ChangeSheet() {
-  const s = useProto()
+  const { route, bucket } = useProto()
+  return route === 'review' ? <BucketView key={bucket} /> : <Overview />
+}
+// Every screen of the change shares one panel; each brings its own back step and footer.
+function ChangeFrame({ onBack, footer, children }: { onBack?: () => void; footer?: ReactNode; children: ReactNode }) {
+  const { go, base } = useProto()
   return (
-    <Sheet title={change.title} sub={`${change.source} · ${change.synced[0].toUpperCase()}${change.synced.slice(1)}`} onClose={() => s.go(s.base)}>
-      {s.route === 'review' ? <BucketView /> : <Overview />}
+    <Sheet title={change.title} sub={`${change.source} · ${change.synced[0].toUpperCase()}${change.synced.slice(1)}`} onBack={onBack} footer={footer} onClose={() => go(base)}>
+      {children}
     </Sheet>
   )
 }
@@ -152,9 +157,6 @@ function Home() {
         <Carousel>{cards}</Carousel>
       </section>
       <Dashboard />
-      <Skeleton />
-      <SkeletonCards />
-      <SkeletonCharts />
     </>
   )
 }
@@ -230,40 +232,6 @@ function Dashboard() {
   )
 }
 
-// Placeholder blocks: the rest of a real home page, not designed here.
-function Skeleton() {
-  return (
-    <section className="p-skel-grid" aria-hidden="true">
-      <div className="p-card">{bar('30%', 12)}{[92, 78, 85, 70, 88].map((w, i) => <div key={i} className="p-skel-row">{bar('28px', 28)}<span className="p-grow">{bar(`${w}%`)}{bar(`${w - 30}%`, 8)}</span>{bar('48px')}</div>)}</div>
-      <div className="p-card">{bar('40%', 12)}<span className="p-skel" style={{ height: 120 }} />{bar('90%')}{bar('70%')}{bar('80%')}</div>
-    </section>
-  )
-}
-
-const bar = (w: string | number, h = 10) => <span className="p-skel" style={{ width: w, height: h }} />
-function SkeletonCards() {
-  return (
-    <section className="p-sec" aria-hidden="true">
-      {bar(140, 10)}
-      <div className="p-skel-cards">{[0, 1, 2].map(i => (
-        <div key={i} className="p-card">{bar(64, 18)}{bar('80%', 14)}{bar('95%')}{bar('60%')}<div className="p-skel-row">{bar(48, 18)}{bar(48, 18)}{bar(48, 18)}</div></div>
-      ))}</div>
-    </section>
-  )
-}
-function SkeletonCharts() {
-  const h = [40, 62, 48, 80, 56, 92, 70, 84, 60, 74, 50, 88]
-  return (
-    <section className="p-sec" aria-hidden="true">
-      {bar(160, 10)}
-      <div className="p-skel-grid">
-        <div className="p-card">{bar('25%', 12)}<div className="p-skel-bars">{h.map((v, i) => <span key={i} className="p-skel" style={{ height: `${v}%` }} />)}</div></div>
-        <div className="p-card">{bar('45%', 12)}<span className="p-skel p-skel-ring" />{bar('80%')}{bar('65%')}</div>
-      </div>
-    </section>
-  )
-}
-
 // Everything: open changes, the scan, duplicates, then closed changes. Home's "View all (n)" counts these.
 type Row = [string, string, string, number | string, () => void]
 function useAllRows(): Row[] {
@@ -296,112 +264,123 @@ function AllChanges() {
 function Overview() {
   const s = useProto()
   const open = (id: Bucket) => { s.set({ bucket: id }); s.go('review') }
+  const doneIn = (b: typeof buckets[number], bi: number) => (b.id === 'Low' ? (s.retired ? b.places : 0) : bucketDone(s, bi))
+  const first = buckets.find((b, bi) => doneIn(b, bi) < b.places)
+  const footer = first
+    ? <><span className="p-grow" /><button className="p-btn primary" onClick={() => open(first.id)}>{first.id === 'Low' ? 'Retire Low' : `Review ${first.id}`} · {first.places - doneIn(first, buckets.indexOf(first))}</button></>
+    : <><span className="p-grow" /><button className="p-btn primary" onClick={() => s.go(s.base)}>Done</button></>
   return (
-    <>
+    <ChangeFrame footer={footer}>
       <div className="p-done-strip"><Ic d="M5 12l5 5 9-11" /><span><b>{lanes.tokens} places already updated</b> by tokens when {change.owner} confirmed {change.to}.</span></div>
-      <div className="p-sec">
-        <div className="p-buckets">{buckets.map((b, bi) => {
-          const done = b.id === 'Low' ? (s.retired ? b.places : 0) : bucketDone(s, bi)
-          return (
-            <div key={b.id} className={`p-bucket ${done === b.places ? 'done' : ''}`} onClick={() => open(b.id)}>
-              <span className="p-row"><Urg u={b.id} /><span className="p-grow" />{done === b.places && <span className="p-chip ok">{b.id === 'Low' ? 'Retired' : 'Published'}</span>}</span>
-              <b className="p-big">{b.places - done}</b>
-              <span className="p-muted p-small">{done ? `of ${b.places} places left` : 'places'}</span>
-              <span className="p-small">{b.reason}</span>
-              <span className="p-meter"><span style={{ width: `${(done / b.places) * 100}%` }} /></span>
-              <button className="p-btn tertiary" onClick={e => { e.stopPropagation(); open(b.id) }}>
-                {done === b.places ? 'View' : done ? 'Continue' : b.id === 'Low' ? 'Retire' : 'Review'}
-              </button>
-            </div>
-          )
-        })}</div>
-      </div>
-    </>
+      <div className="p-buckets">{buckets.map((b, bi) => {
+        const done = doneIn(b, bi)
+        return (
+          <div key={b.id} className={`p-bucket ${done === b.places ? 'done' : ''}`} onClick={() => open(b.id)}>
+            <span className="p-row"><Urg u={b.id} /><span className="p-grow" />{done === b.places && <span className="p-chip ok">{b.id === 'Low' ? 'Retired' : 'Published'}</span>}</span>
+            <b className="p-big">{b.places - done}</b>
+            <span className="p-muted p-small">{done ? `of ${b.places} places left` : 'places'}</span>
+            <span className="p-small p-muted p-fill">{b.reason}</span>
+            {done > 0 && <span className="p-meter"><span style={{ width: `${(done / b.places) * 100}%` }} /></span>}
+            <button className="p-btn tertiary" onClick={e => { e.stopPropagation(); open(b.id) }}>
+              {done === b.places ? 'View' : done ? 'Continue' : b.id === 'Low' ? 'Retire' : 'Review'}
+            </button>
+          </div>
+        )
+      })}</div>
+    </ChangeFrame>
   )
 }
 
 const Urg = ({ u }: { u: Bucket }) => <span className={`p-chip urg-${u.toLowerCase()}`}>{u}</span>
 
-// Step 2: one bucket. Identical sentences approve and publish together; judgment items one by one.
+// Step 2: one bucket. Tick the same-sentence groups, publish them once from the footer; judgment items one by one.
 function BucketView() {
   const s = useProto()
   const { bucket, pub, narrow, jDone, alerted, retired, set, say, go } = s
   const [confirm, setConfirm] = useState(false)
+  const [skip, setSkip] = useState<string[]>([])
   const bi = ORDER.indexOf(bucket)
   const b = buckets.find(x => x.id === bucket)!
   const next = buckets[buckets.indexOf(b) + 1]
-  const nav = (
-    <div className="p-row p-bucket-nav">
-      <button className="p-link" onClick={() => go('impact')}>← All urgency levels</button><span className="p-grow" />
-      {next && <button className="p-btn" onClick={() => set({ bucket: next.id })}>Next: {next.id} · {next.places}</button>}
-    </div>
-  )
-  const head = (
-    <div className="p-head">
-      <div className="p-grow"><h1 className="p-row"><Urg u={b.id} /> {b.places} places</h1><p className="p-muted p-sub-line">{b.reason}.</p></div>
-    </div>
-  )
-  if (bi < 0) return (
-    <>
-      {nav}{head}
-      <div className="p-card">
-        {retireSamples.map(([a, why]) => <div key={a} className="p-row"><b>{a}</b><span className="p-grow p-muted">{why}</span></div>)}
-        <p className="p-muted p-small">Showing 3 of {retire.assets} assets. Owners can object for 14 days, and undo stays available.</p>
-        <div className="p-actions">
-          {retired ? <span className="p-chip ok">{retire.assets} assets retired</span>
-            : confirm ? <span className="p-confirm">Retire {retire.places} places in {retire.assets} assets?
-                <button className="p-btn primary" onClick={() => { set({ retired: true }); setConfirm(false); say(`${retire.assets} assets retired. Owners have 14 days to object.`) }}>Retire</button>
-                <button className="p-btn" onClick={() => setConfirm(false)}>Cancel</button></span>
-            : <button className="p-btn primary" onClick={() => setConfirm(true)}>Retire {retire.assets} assets</button>}
+  const back = () => go('impact')
+  const toNext = next && <button className="p-btn" onClick={() => set({ bucket: next.id })}>Next: {next.id} · {next.places}</button>
+  const head = <SecHead title={`${b.places} places`} tag={<Urg u={b.id} />} meta={`${b.reason}.`} />
+
+  if (bi < 0) {
+    const footer = retired ? <><span className="p-chip ok">{retire.assets} assets retired</span><span className="p-grow" /><button className="p-btn primary" onClick={back}>Back to all levels</button></>
+      : confirm ? <><span className="p-grow">Retire {retire.places} places in {retire.assets} assets?</span>
+          <button className="p-btn" onClick={() => setConfirm(false)}>Cancel</button>
+          <button className="p-btn primary" onClick={() => { set({ retired: true }); setConfirm(false); say(`${retire.assets} assets retired. Owners have 14 days to object.`) }}>Retire</button></>
+      : <><span className="p-grow" /><button className="p-btn primary" onClick={() => setConfirm(true)}>Retire {retire.assets} assets</button></>
+    return (
+      <ChangeFrame onBack={back} footer={footer}>
+        {head}
+        <div className="p-card p-list">
+          {retireSamples.map(([a, why]) => <div key={a} className="p-row"><b>{a}</b><span className="p-grow p-muted">{why}</span></div>)}
         </div>
-      </div>
-    </>
-  )
+        <p className="p-muted p-small">Showing 3 of {retire.assets} assets. Owners can object for 14 days, and undo stays available.</p>
+      </ChangeFrame>
+    )
+  }
+
   const mine = groups.filter(g => g.split[bi] > 0)
   const open = mine.filter(g => !pub[`${g.id}:${bi}`])
+  const picked = open.filter(g => !skip.includes(g.id))
   const items = judgment.filter(j => j.bucket === bi)
-  // Publish groups here, and in the other buckets too unless that group was narrowed to this one.
-  const publish = (gs: typeof groups) => {
-    const next = { ...pub }
+  // Places a publish reaches: this bucket, plus the other buckets unless that group was narrowed to this one.
+  const reach = (gs: typeof groups) => {
+    const keys: string[] = []
     let n = 0
     gs.forEach(g => g.split.forEach((k, i) => {
       const key = `${g.id}:${i}`
-      if (k > 0 && !next[key] && (i === bi || !narrow.includes(g.id))) { next[key] = true; n += k }
+      if (k > 0 && !pub[key] && (i === bi || !narrow.includes(g.id))) { keys.push(key); n += k }
     }))
-    set({ pub: next, live: true })
+    return { keys, n }
+  }
+  const publish = (gs: typeof groups) => {
+    const { keys, n } = reach(gs)
+    set({ pub: { ...pub, ...Object.fromEntries(keys.map(k => [k, true as const])) }, live: true })
     say(s.live ? `Published ${n} places.` : `Published ${n} places. ${sellersAtRisk.withMeetings} sellers with meetings this week get one alert.`)
   }
+  const toggle = (id: string) => setSkip(skip.includes(id) ? skip.filter(x => x !== id) : [...skip, id])
   const decide = (id: string, v: 'ok' | 'sent') => {
     set({ jDone: { ...jDone, [id]: v }, live: s.live || v === 'ok' })
     say(v === 'ok' ? 'Published.' : 'Sent to Product marketing.')
   }
+  const footer = open.length > 0
+    ? <>{toNext}<span className="p-grow" /><button className="p-btn primary" disabled={!picked.length} onClick={() => publish(picked)}>
+        Approve & Publish {picked.length} {picked.length === 1 ? 'group' : 'groups'} · {reach(picked).n} places</button></>
+    : <><span className="p-chip ok">All groups published</span><span className="p-grow" />
+        {next ? <button className="p-btn primary" onClick={() => set({ bucket: next.id })}>Next: {next.id} · {next.places}</button>
+          : <button className="p-btn primary" onClick={back}>Back to all levels</button>}</>
   return (
-    <>
-      {nav}{head}
+    <ChangeFrame onBack={back} footer={footer}>
+      {head}
       <section className="p-sec">
         <div className="p-row p-table-head">
           <span className="p-card-title p-grow ai-label"><AiBadge />We found the same sentence in {mine.length} groups</span>
-          {open.length > 0 ? <button className="p-btn primary" onClick={() => publish(open)}>Approve & Publish all {open.length}</button> : <span className="p-chip ok">All published</span>}
+          {open.length > 1 && <button className="p-link" onClick={() => setSkip(picked.length ? open.map(g => g.id) : [])}>{picked.length ? 'Clear all' : 'Select all'}</button>}
         </div>
         {mine.map(g => {
           const here = g.split[bi]
           const elsewhere = g.split.reduce((n, k, i) => n + (i !== bi && !pub[`${g.id}:${i}`] ? k : 0), 0)
           const done = pub[`${g.id}:${bi}`]
+          const on = !done && !skip.includes(g.id)
+          const sample = bucketSamples[bi][Number(g.id.slice(1)) % 3]
           return (
-            <div key={g.id} className={`p-card ${done ? 'done' : ''}`}>
-              <div className="p-row">
-                <div className="p-grow">
-                  <div className="p-diff"><s>{g.old}</s><span>{g.next}</span></div>
-                  <div className="p-muted p-small">{here} places here · e.g. {bucketSamples[bi][Number(g.id.slice(1)) % 3][0]}: {bucketSamples[bi][Number(g.id.slice(1)) % 3][1]}</div>
-                </div>
-                {done ? <span className="p-chip ok">Published</span> : <button className="p-btn" onClick={() => publish([g])}>Approve & Publish {here}</button>}
+            <div key={g.id} className={`p-card p-pick ${done ? 'done' : on ? 'on' : ''}`} onClick={() => !done && toggle(g.id)}>
+              <span className={`p-box ${done || on ? 'on' : ''}`} role="checkbox" aria-checked={!!done || on} aria-disabled={!!done}>{(done || on) && <Ic d="M5 12l5 5 9-11" size={12} />}</span>
+              <div className="p-grow">
+                <div className="p-diff"><s>{g.old}</s><span>{g.next}</span></div>
+                <div className="p-muted p-small">{here} places here · e.g. {sample[0]}: {sample[1]}</div>
+                {!done && elsewhere > 0 && (
+                  <label className="p-check p-small" onClick={e => e.stopPropagation()}>
+                    <input type="checkbox" checked={!narrow.includes(g.id)} onChange={e => set({ narrow: e.target.checked ? narrow.filter(x => x !== g.id) : [...narrow, g.id] })} />
+                    Also publish the {elsewhere} places in other urgency levels with this sentence
+                  </label>
+                )}
               </div>
-              {!done && elsewhere > 0 && (
-                <label className="p-check p-small">
-                  <input type="checkbox" checked={!narrow.includes(g.id)} onChange={e => set({ narrow: e.target.checked ? narrow.filter(x => x !== g.id) : [...narrow, g.id] })} />
-                  Also publish the {elsewhere} places in other urgency levels with this sentence
-                </label>
-              )}
+              {done && <span className="p-chip ok">Published</span>}
             </div>
           )
         })}
@@ -430,6 +409,6 @@ function BucketView() {
             : <button className="p-btn" onClick={() => { set({ alerted: [...alerted, b.id] }); say(`${b.sellers.length} sellers alerted.`) }}>Alert {b.sellers.length} sellers</button>}
         </div>
       </section>
-    </>
+    </ChangeFrame>
   )
 }

@@ -19,11 +19,10 @@ export function Scan() {
     const cur = spotsOff[i] ?? []
     set({ spotsOff: { ...spotsOff, [i]: cur.includes(k) ? cur.filter(x => x !== k) : [...cur, k] } })
   }
+  const footer = <><span className="p-counter"><b>{spotsLeft(s)}</b> of {scan.total} spots left</span><span className="p-grow" /><button className="p-btn primary" onClick={() => s.go(s.base)}>Done</button></>
   return (
-    <>
-      <Head sub="Plain text that matches a fact. Linked spots update by themselves on the next change.">
-        <span className="p-counter"><b>{spotsLeft(s)}</b> of {scan.total} spots left</span>
-      </Head>
+    <Sheet title="Scan results" sub="Library · Plain text that matches a fact" onClose={() => s.go(s.base)} footer={footer}>
+      <p className="p-intro">Linked spots update by themselves on the next change.</p>
       <div className="p-stack">
         {scan.patterns.map((p, i) => {
           const done = scanDone[i]
@@ -77,17 +76,15 @@ export function Scan() {
         </div>
       </div>
       {s.untokOpen && (
-        <Sheet title={`${un.length} spots that cannot hold tokens`} onClose={() => set({ untokOpen: false })}>
-          <div className="p-row p-table-head"><span className="p-grow" />
-            {flagged ? <span className="p-chip ok">Flagged for replacement</span> : <button className="p-btn primary" onClick={() => { set({ flagged: true }); say(`${un.length} spots flagged. Their owners get a task.`) }}>Flag all for replacement</button>}
-          </div>
+        <Sheet title={`${un.length} spots that cannot hold tokens`} sub="PDFs and video" onBack={() => set({ untokOpen: false })} onClose={() => set({ untokOpen: false })}
+          footer={<><span className="p-grow" />{flagged ? <span className="p-chip ok">Flagged for replacement</span> : <button className="p-btn primary" onClick={() => { set({ flagged: true }); say(`${un.length} spots flagged. Their owners get a task.`) }}>Flag all for replacement</button>}</>}>
           <table className="p-table">
             <thead><tr><th>Asset</th><th>Where</th><th>What</th></tr></thead>
-            <tbody>{un.map(([a, where, what]) => <tr key={a + where}><td><b>{a}</b></td><td>{where}</td><td className="p-muted">{what}</td></tr>)}</tbody>
+            <tbody>{un.map(([a, where, what]) => <tr key={a + where} className="static"><td><b>{a}</b></td><td>{where}</td><td className="p-muted">{what}</td></tr>)}</tbody>
           </table>
         </Sheet>
       )}
-    </>
+    </Sheet>
   )
 }
 
@@ -96,18 +93,20 @@ export function Merge() {
   const { merged, notDup, base, set, say, go } = useProto()
   const [diffs, setDiffs] = useState(false)
   const settled = merged || notDup
+  const footer = settled
+    ? <><span className={`p-chip ${merged ? 'ok' : ''}`}>{merged ? 'Merged' : 'Marked as not duplicates'}</span><span className="p-grow" /><button className="p-btn primary" onClick={() => go(base)}>Done</button></>
+    : <>
+        <button className="p-btn" onClick={() => { set({ notDup: true }); say('Kept as separate assets.') }}>Not duplicates</button>
+        <button className="p-btn" onClick={() => setDiffs(d => !d)}>{diffs ? 'Hide differences' : 'Review differences'}</button>
+        <span className="p-grow" />
+        <button className="p-btn primary" onClick={() => { set({ merged: true }); say(`Merged. ${merge.archive} versions archived. Links still work.`) }}>Merge into {merge.keep}</button>
+      </>
   return (
-    <>
-      <Head sub="Found by comparing slide text and images across the library.">
-        {merged ? <span className="p-chip ok">Merged</span> : notDup ? <span className="p-chip">Marked as not duplicates</span> : <>
-          <button className="p-btn" onClick={() => setDiffs(d => !d)}>{diffs ? 'Hide differences' : 'Review differences'}</button>
-          <button className="p-btn" onClick={() => { set({ notDup: true }); say('Kept as separate assets.') }}>Not duplicates</button>
-          <button className="p-btn primary" onClick={() => { set({ merged: true }); say(`Merged. ${merge.archive} versions archived. Links still work.`) }}>Merge</button>
-        </>}
-      </Head>
+    <Sheet title={`${merge.versions} versions of ${merge.asset}`} sub="Library · Duplicates" onClose={() => go(base)} footer={footer}>
+      <p className="p-intro">Found by comparing slide text and images across the library.</p>
       <table className="p-table">
         <thead><tr><th>Group</th><th>Versions</th><th>Difference</th></tr></thead>
-        <tbody>{merge.groups.map(g => <tr key={g.name}><td><b>{g.name}</b></td><td>{g.versions}</td><td className="p-muted">{g.diff}</td></tr>)}</tbody>
+        <tbody>{merge.groups.map(g => <tr key={g.name} className="static"><td><b>{g.name}</b></td><td>{g.versions}</td><td className="p-muted">{g.diff}</td></tr>)}</tbody>
       </table>
       {diffs && !settled && (
         <div className="p-card">
@@ -123,8 +122,7 @@ export function Merge() {
         {merge.result.map(r => <div key={r} className="p-row"><span className="p-grow">{r}</span></div>)}
         <div className="p-banner">Future pricing changes touch {merge.keep} assets here, not {merge.versions}.</div>
       </div>
-      {settled && <div className="p-foot"><button className="p-btn primary" onClick={() => go(base)}>Done</button></div>}
-    </>
+    </Sheet>
   )
 }
 
