@@ -216,7 +216,7 @@
 
 /* ---------- floating side panel ---------- */
 .p-scrim { position: absolute; inset: 0; z-index: 15; display: flex; justify-content: flex-end; padding: 12px; background: rgba(24, 20, 28, .3); backdrop-filter: blur(1.5px); animation: p-fade .15s ease-out; }
-.p-sheet { width: clamp(560px, 56%, 1040px); max-width: 100%; height: 100%; display: flex; flex-direction: column; overflow: hidden; background: var(--p-surface); border-radius: var(--p-r-lg); box-shadow: var(--p-shadow-lg), 0 0 0 1px rgba(28, 25, 23, .06); animation: p-slide .22s cubic-bezier(.2, .8, .2, 1); }
+.p-sheet { width: 1024px; max-width: 100%; height: 100%; display: flex; flex-direction: column; overflow: hidden; background: var(--p-surface); border-radius: var(--p-r-lg); box-shadow: var(--p-shadow-lg), 0 0 0 1px rgba(28, 25, 23, .06); animation: p-slide .22s cubic-bezier(.2, .8, .2, 1); }
 .p-sheet-head { flex: none; padding: 18px 16px 16px 24px; border-bottom: 1px solid var(--p-line); }
 .p-sheet-bar { display: flex; align-items: flex-start; gap: 8px; }
 .p-sheet-bar > .p-ibtn:first-child { margin: -3px 0 0 -10px; }
