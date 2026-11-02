@@ -4,7 +4,7 @@ import { Title, Setup, ProblemMapSlide, Story, Fanout } from './act1'
 import { Solved, StillOpen, Assumptions } from './act2'
 import * as A3s from './act3'
 import Prototype from '../proto/Prototype'
-import { Measure, Validate, Next } from './act45'
+import { Measure, Validate, Thanks } from './act45'
 
 const A1 = 'Act 1: The problem', A2 = 'Act 2: What exists', A3 = 'Act 3: The idea', A4 = 'Act 4: The experience', A5 = 'Act 5: Close'
 
@@ -35,5 +35,5 @@ export const slides: SlideDef[] = [
   { id: 'prototype', act: A4, title: 'Prototype', steps: 0, Component: Prototype, prototype: true },
   { id: 'measure', act: A5, title: 'What I would measure', steps: 4, Component: Measure },
   { id: 'validate', act: A5, title: 'How I would validate and ship it', steps: 3, Component: Validate },
-  { id: 'next', act: A5, title: 'What is next, and what I left out', steps: 2, Component: Next },
+  { id: 'thanks', act: A5, title: 'Thank you', steps: 0, Component: Thanks },
 ]

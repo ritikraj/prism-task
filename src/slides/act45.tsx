@@ -41,19 +41,13 @@ export function Validate() {
   )
 }
 
-export function Next() {
+// Close: thank you, and the way into the prototype.
+export function Thanks() {
   return (
-    <Frame eyebrow="What is next, and what I left out">
-      <div className="statement">
-        <Reveal at={1}><p>Next: narrative changes at scale. Claims inside video.</p></Reveal>
-        <Reveal at={2}><p className="muted">Left out on purpose: targeting, attribution, seller search, monitoring calls.</p></Reveal>
-      </div>
-      <Reveal at={2}>
-        <div className="end-row">
-          <span className="lead">Thank you.</span>
-          <a className="end-link" href="#/prototype/0">Open the prototype</a>
-        </div>
-      </Reveal>
+    <Frame center>
+      <h1 className="xl">Thank you.</h1>
+      <a className="end-link" href="#/prototype/0">Open the prototype →</a>
+      <p className="muted">{location.host}/#/prototype</p>
     </Frame>
   )
 }
