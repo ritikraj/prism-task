@@ -377,3 +377,37 @@
 .p-table-scroll .p-tag { max-width: 110px; overflow: hidden; text-overflow: ellipsis; }
 .p-acts { display: flex; align-items: center; gap: 8px; flex: none; }
 .p-pattern .p-muted { white-space: nowrap; }
+
+/* ---------- review lists: one quiet box of rows, details on demand ---------- */
+.p-lbox { display: flex; flex-direction: column; border: 1px solid var(--p-line); border-radius: var(--p-r-md); background: var(--p-surface); overflow: hidden; }
+.p-lrow { display: flex; align-items: flex-start; gap: 14px; padding: 14px 16px; transition: background 120ms; }
+.p-lrow + .p-lrow { border-top: 1px solid var(--p-line); }
+.p-lrow:hover:not(.done) { background: var(--p-bg); }
+.p-lrow.done .p-diff, .p-lrow.done .p-lmeta { opacity: .5; }
+.p-lbox .p-pick, .p-lbox .p-pick.on { border: 0; border-radius: 0; background: none; }
+.p-lbox .p-pick.on:hover { background: var(--p-bg); }
+.p-lbox .p-diff { gap: 2px; font-size: 14px; }
+.p-lbox .p-diff del { font-size: 13px; }
+.p-lmeta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 0; margin-top: 6px; font-size: 12.5px; color: var(--p-muted); }
+.p-lmeta > * + *::before { content: "·"; margin: 0 8px; color: var(--p-faint); }
+.p-lside { flex: none; display: flex; align-items: center; gap: 6px; margin-top: 1px; font-size: 13px; color: var(--p-muted); white-space: nowrap; }
+.p-lside b { color: var(--p-ink); font-weight: 600; font-variant-numeric: tabular-nums; margin-right: 3px; }
+.p-donetag { display: inline-flex; align-items: center; gap: 5px; color: var(--p-ok); font-weight: 500; }
+.p-conf { display: inline-flex; align-items: center; }
+.p-conf i { width: 6px; height: 6px; margin-right: 5px; border-radius: 50%; background: var(--p-faint); }
+.p-conf.high i { background: var(--p-ok); }
+.p-conf.medium i { background: #d29b1f; }
+.p-conf.low i { background: var(--p-warn); }
+.p-why { display: inline-flex; align-items: center; gap: 4px; padding: 0; border: 0; background: none; color: var(--p-accent); font-size: 12.5px; font-weight: 500; cursor: pointer; }
+.p-why .ai-ic { width: 12px; height: 12px; }
+.p-why:hover { text-decoration: underline; text-underline-offset: 3px; }
+.p-whybox { margin-top: 10px; padding: 10px 12px; border-left: 2px solid var(--p-accent-line); background: color-mix(in srgb, var(--p-accent-soft) 45%, var(--p-surface)); border-radius: 0 8px 8px 0; font-size: 13px; color: var(--p-ink-2); animation: p-fade .15s ease-out; }
+.p-btn.sm { height: 30px; padding: 0 10px; font-size: 13px; }
+.p-btn.sm.ghost { width: 30px; padding: 0; border-color: transparent; background: none; box-shadow: none; color: var(--p-muted); }
+.p-btn.sm.ghost:hover:not(:disabled) { background: var(--p-head); color: var(--p-ink); border-color: transparent; }
+.p-jrow { flex-direction: column; align-items: stretch; gap: 8px; }
+.p-jfoot { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.p-jfoot .p-lmeta { margin-top: 0; }
+.p-jrow .p-whybox { margin-top: 2px; }
+.p-diff del, .p-diff ins { -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.p-jfoot .p-lside { margin-left: auto; }

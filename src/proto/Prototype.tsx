@@ -9,7 +9,7 @@ import {
   useProto, notHere, groups, judgment, GUIDE, ORDER, allDone, bucketDone, spotsLeft, CHANGE_ROUTES, LIBRARY_ROUTES, MODAL_ROUTES, CLAIM_ROUTES, scanLinked,
   type Route,
 } from './store'
-import { AiBadge, Avatar, Avatars, BtnIc, Conf, Diff, Head, ICON, Ic, Meta, SecHead, Sheet, Stats, Tile } from './ui'
+import { AiBadge, Avatar, Avatars, BtnIc, Diff, Head, ICON, Ic, Meta, SecHead, Sheet, Stats, Tile } from './ui'
 import { Asset, Claim, Claims, Library, Merge, Scan } from './Screens3'
 
 const SCREENS: Record<Route, () => JSX.Element> = {
@@ -334,6 +334,7 @@ function BucketView() {
   const { bucket, pub, jDone, alerted, retired, set, say, go } = s
   const [confirm, setConfirm] = useState(false)
   const [skip, setSkip] = useState<string[]>([])
+  const [why, setWhy] = useState<string[]>([])
   const bi = ORDER.indexOf(bucket)
   const b = buckets.find(x => x.id === bucket)!
   const next = buckets[buckets.indexOf(b) + 1]
@@ -396,38 +397,53 @@ function BucketView() {
           <h2 className="ai-label"><AiBadge />We found the same sentence in {mine.length} groups</h2><span className="p-grow" />
           {open.length > 1 && <button className="p-link" onClick={() => setSkip(picked.length ? open.map(g => g.id) : [])}>{picked.length ? 'Clear all' : 'Select all'}</button>}
         </div>
-        {mine.map(g => {
-          const here = g.split[bi]
+        <div className="p-lbox">{mine.map(g => {
           const done = pub[`${g.id}:${bi}`]
           const on = !done && !skip.includes(g.id)
           const sample = bucketSamples[bi][Number(g.id.slice(1)) % 3]
           return (
-            <div key={g.id} className={`p-card p-pick ${done ? 'done' : on ? 'on' : ''}`} onClick={() => !done && toggle(g.id)}>
-              <span className={`p-box ${done || on ? 'on' : ''}`} role="checkbox" aria-checked={!!done || on} aria-disabled={!!done}>{(done || on) && <Ic d="M5 12l5 5 9-11" size={12} />}</span>
+            <div key={g.id} className={`p-lrow p-pick ${done ? 'done' : on ? 'on' : ''}`} onClick={() => !done && toggle(g.id)}>
+              <span className={`p-box ${done || on ? 'on' : ''}`} role="checkbox" aria-checked={!!done || on} aria-disabled={!!done}>{(done || on) && <Ic d={ICON.check} size={12} />}</span>
               <div className="p-grow">
                 <Diff old={g.old} next={g.next} />
-                <div className="p-muted p-small">{here} places here · e.g. {sample[0]}: {sample[1]}</div>
+                <div className="p-lmeta"><span>e.g. {sample[0]}</span></div>
               </div>
-              {done && <span className="p-chip ok">Published</span>}
+              <span className="p-lside">{done ? <span className="p-donetag"><Ic d={ICON.check} size={13} />Published</span> : <><b>{g.split[bi]}</b> {g.split[bi] === 1 ? 'place' : 'places'}</>}</span>
             </div>
           )
-        })}
+        })}</div>
       </section>
       <section className="p-sec">
-        <div className="p-sec-row"><h2>Decide one by one</h2><span className="p-muted p-small">{items.filter(j => !jDone[j.id]).length} of {items.length} left</span></div>
-        {items.map(j => (
-          <div key={j.id} className={`p-card p-judge ${jDone[j.id] ? 'done' : ''}`}>
-            <div className="p-row"><span className="p-muted p-small p-grow">{j.kind} · {j.where}</span><Conf c={j.confidence} /></div>
-            <Diff old={j.old} next={j.next} />
-            {j.working && <div className="p-working"><span className="p-small ai-label"><AiBadge />How we got here</span>{j.working}</div>}
-            <div className="p-actions">
-              {jDone[j.id] ? <span className="p-chip ok">{jDone[j.id] === 'ok' ? 'Published' : 'Sent to Product marketing'}</span> : <>
-                <button className={`p-btn ${j.route === 'Admin' ? 'primary' : ''}`} onClick={() => decide(j.id, 'ok')}>Approve & Publish</button>
-                <button className={`p-btn ${j.route === 'Admin' ? '' : 'primary'}`} onClick={() => decide(j.id, 'sent')}>Send to Product marketing</button>
-              </>}
+        <div className="p-sec-row"><h2>Needs a closer look</h2><span className="p-grow" /><span className="p-muted p-small">{items.filter(j => !jDone[j.id]).length} of {items.length} left</span></div>
+        <div className="p-lbox">{items.map(j => {
+          const done = jDone[j.id]
+          const open = why.includes(j.id)
+          // The suggested route is the main button; the other route is a quiet icon button.
+          const toPmm = j.route !== 'Admin'
+          return (
+            <div key={j.id} className={`p-lrow p-jrow ${done ? 'done' : ''}`}>
+              <Diff old={j.old} next={j.next} />
+              <div className="p-jfoot">
+                <div className="p-lmeta">
+                  <span title={j.kind}>{j.where}</span>
+                  <span className={`p-conf ${j.confidence.toLowerCase()}`}><i />{j.confidence} confidence</span>
+                  {j.working && <button className="p-why" aria-expanded={open} onClick={() => setWhy(open ? why.filter(x => x !== j.id) : [...why, j.id])}>
+                    <span className="ai-ic" />{open ? 'Hide reasoning' : 'Why this edit'}<Ic d={open ? 'M6 15l6-6 6 6' : 'M6 9l6 6 6-6'} size={13} />
+                  </button>}
+                </div>
+                <span className="p-grow" />
+                <div className="p-lside">
+                {done ? <span className="p-donetag"><Ic d={done === 'ok' ? ICON.check : ICON.send} size={13} />{done === 'ok' ? 'Published' : 'Sent to Product marketing'}</span> : <>
+                  <button className="p-btn sm ghost" title={toPmm ? 'Approve & Publish' : 'Send to Product marketing'} aria-label={toPmm ? 'Approve & Publish' : 'Send to Product marketing'}
+                    onClick={() => decide(j.id, toPmm ? 'ok' : 'sent')}><Ic d={toPmm ? ICON.check : ICON.send} size={15} /></button>
+                  <button className="p-btn sm" onClick={() => decide(j.id, toPmm ? 'sent' : 'ok')}>{toPmm ? <BtnIc d={ICON.send}>Send to Product marketing</BtnIc> : <BtnIc d={ICON.check}>Approve & Publish</BtnIc>}</button>
+                </>}
+                </div>
+              </div>
+              {open && <div className="p-whybox">{j.working}</div>}
             </div>
-          </div>
-        ))}
+          )
+        })}</div>
       </section>
       <section className="p-sec">
         <div className="p-sec-row"><h2>Copies sellers already sent</h2><span className="p-muted p-small">{b.copies}</span></div>
