@@ -1,6 +1,6 @@
 // Small shared pieces of the prototype's component system.
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import type { Confidence } from './store'
+import { useProto, notHere, type Confidence } from './store'
 
 export const Conf = ({ c }: { c: Confidence }) => <span className={`p-chip conf-${c.toLowerCase()}`}>{c} confidence</span>
 // AI-made content is marked by this badge, so the copy itself can say "we".
@@ -37,7 +37,28 @@ export const ICON = {
   archive: 'M3 4h18v4H3zM5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M10 12h4',
   star: 'M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z',
   link: 'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1',
+  bell: 'M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10 21h4',
+  help: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01',
+  plus: 'M12 5v14M5 12h14',
+  more: 'M5 12h.01M12 12h.01M19 12h.01',
+  expand: 'M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7',
+  sheet: 'M4 4h16v16H4zM4 10h16M10 4v16',
+  clock: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2',
+  folder: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+  arrow: 'M5 12h14M13 6l6 6-6 6',
+  send: 'M22 2L11 13M22 2l-7 20-4-9-9-4z',
+  merge: 'M6 3v12M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 9a9 9 0 0 1-9 9',
+  flag: 'M4 22V4M4 4h13l-2 4 2 4H4',
+  upload: 'M12 16V4M7 9l5-5 5 5M4 17v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2',
+  film: 'M4 4h16v16H4zM8 4v16M16 4v16M4 9h4M4 15h4M16 9h4M16 15h4',
 }
+
+// A meta line: small icon + text pairs, dot-separated.
+export const Meta = ({ items }: { items: [string, ReactNode][] }) => (
+  <span className="p-metas">{items.map(([d, t], i) => <span key={i}><Ic d={d} size={13} />{t}</span>)}</span>
+)
+// A primary or secondary button label with a leading icon.
+export const BtnIc = ({ d, children }: { d: string; children: ReactNode }) => <><Ic d={d} size={15} />{children}</>
 
 // A tinted square holding an icon: the type of a card at a glance.
 export const Tile = ({ d, tone = 'accent' }: { d: string; tone?: 'accent' | 'ai' | 'warn' | 'ok' | 'muted' }) => (
@@ -90,7 +111,13 @@ export function Sheet({ title, sub, tabs, onBack, footer, onClose, children }: {
           <div className="p-sheet-bar">
             {onBack && <button className="p-ibtn" aria-label="Back" title="Back" onClick={onBack}><Ic d="M15 6l-6 6 6 6" size={18} /></button>}
             <div className="p-grow"><h1>{title}</h1>{sub && <p className="p-sheet-sub">{sub}</p>}</div>
-            <button className="p-ibtn" aria-label="Close" title="Close" onClick={onClose}><Ic d="M6 6l12 12M18 6L6 18" size={18} /></button>
+            <span className="p-sheet-acts">
+              <button className="p-ibtn" aria-label="Copy link" title="Copy link" onClick={() => useProto.getState().say('Link copied.')}><Ic d={ICON.link} size={17} /></button>
+              <button className="p-ibtn" aria-label="Open as a page" title="Open as a page" onClick={notHere}><Ic d={ICON.expand} size={16} /></button>
+              <button className="p-ibtn" aria-label="More actions" title="More actions" onClick={notHere}><Ic d={ICON.more} size={18} /></button>
+              <i className="p-vsep" />
+              <button className="p-ibtn" aria-label="Close" title="Close" onClick={onClose}><Ic d="M6 6l12 12M18 6L6 18" size={18} /></button>
+            </span>
           </div>
           {tabs}
         </header>

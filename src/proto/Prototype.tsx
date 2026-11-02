@@ -9,7 +9,7 @@ import {
   useProto, notHere, groups, judgment, GUIDE, ORDER, allDone, bucketDone, spotsLeft, CHANGE_ROUTES, LIBRARY_ROUTES, MODAL_ROUTES, CLAIM_ROUTES, scanLinked,
   type Route,
 } from './store'
-import { AiBadge, Avatar, Avatars, Conf, Diff, Head, ICON, Ic, SecHead, Sheet, Stats, Tile } from './ui'
+import { AiBadge, Avatar, Avatars, BtnIc, Conf, Diff, Head, ICON, Ic, Meta, SecHead, Sheet, Stats, Tile } from './ui'
 import { Asset, Claim, Claims, Library, Merge, Scan } from './Screens3'
 
 const SCREENS: Record<Route, () => JSX.Element> = {
@@ -18,8 +18,8 @@ const SCREENS: Record<Route, () => JSX.Element> = {
 }
 const RAIL: [string, string, Route | null][] = [
   ['Home', 'M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z', 'home'],
-  ['Claims', 'M4 9h16M4 15h16M10 3L8 21M16 3l-2 18', 'claims'],
   ['Library', 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z', 'library'],
+  ['Claims', 'M4 9h16M4 15h16M10 3L8 21M16 3l-2 18', 'claims'],
 ]
 const GEAR = 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z'
 
@@ -71,8 +71,12 @@ export default function Prototype() {
                 ? <span key={c}><button className="p-crumb" onClick={() => go(section)}>{c}</button><span className="p-sep">/</span></span>
                 : <span key={c} className="p-crumb-now">{c}</span>)}
             </div>
-            <button className="p-search" onClick={notHere}><Ic d={ICON.search} size={15} /><span className="p-grow">Search {company.name} content</span><kbd>Ctrl K</kbd></button>
-            <div className="p-top-end" />
+            <button className="p-search" onClick={notHere}><Ic d={ICON.search} size={15} /><span className="p-grow">Search</span><kbd>Ctrl K</kbd></button>
+            <span className="p-grow" />
+            <button className="p-btn p-new" onClick={notHere}><BtnIc d={ICON.plus}>New</BtnIc></button>
+            <button className="p-tbtn" aria-label="Ask AI" title="Ask AI" onClick={notHere}><span className="ai-ic" /></button>
+            <button className="p-tbtn" aria-label="Help" title="Help" onClick={notHere}><Ic d={ICON.help} size={18} /></button>
+            <button className="p-tbtn" aria-label="Notifications" title="Notifications" onClick={notHere}><Ic d={ICON.bell} size={18} /><i className="p-dot" /></button>
           </header>
           <div className="p-panel">
             <main className={`p-main ${page === 'library' ? 'fixed' : ''}`}><div className="p-container"><Screen /></div></main>
@@ -114,7 +118,7 @@ function ChangeSheet() {
 function ChangeFrame({ onBack, footer, children }: { onBack?: () => void; footer?: ReactNode; children: ReactNode }) {
   const { go, base } = useProto()
   return (
-    <Sheet title={change.title} sub={`${change.source} · ${change.synced[0].toUpperCase()}${change.synced.slice(1)}`} onBack={onBack} footer={footer} onClose={() => go(base)}>
+    <Sheet title={change.title} sub={<Meta items={[[ICON.sheet, change.source], [ICON.clock, change.synced[0].toUpperCase() + change.synced.slice(1)], [ICON.users, `Owner: ${change.owner}`]]} />} onBack={onBack} footer={footer} onClose={() => go(base)}>
       {children}
     </Sheet>
   )
@@ -280,7 +284,7 @@ function Overview() {
   const doneIn = (b: typeof buckets[number], bi: number) => (b.id === 'Low' ? (s.retired ? b.places : 0) : bucketDone(s, bi))
   const first = buckets.find((b, bi) => doneIn(b, bi) < b.places)
   const footer = first
-    ? <><span className="p-grow" /><button className="p-btn primary" onClick={() => open(first.id)}>{first.id === 'Low' ? 'Retire Low' : `Review ${first.id}`} · {first.places - doneIn(first, buckets.indexOf(first))}</button></>
+    ? <><span className="p-grow" /><button className="p-btn primary" onClick={() => open(first.id)}>{first.id === 'Low' ? 'Retire Low' : `Review ${first.id}`} · {first.places - doneIn(first, buckets.indexOf(first))}<Ic d={ICON.arrow} size={15} /></button></>
     : <><span className="p-grow" /><button className="p-btn primary" onClick={() => s.go(s.base)}>Done</button></>
   // Where the 456 places stand: tokens, published by hand, retired, and what is left.
   const published = ORDER.reduce((n, _, bi) => n + bucketDone(s, bi), 0)
@@ -334,7 +338,7 @@ function BucketView() {
   const b = buckets.find(x => x.id === bucket)!
   const next = buckets[buckets.indexOf(b) + 1]
   const back = () => go('impact')
-  const toNext = next && <button className="p-btn" onClick={() => set({ bucket: next.id })}>Next: {next.id} · {next.places}</button>
+  const toNext = next && <button className="p-btn" onClick={() => set({ bucket: next.id })}>Next: {next.id} · {next.places}<Ic d={ICON.arrow} size={15} /></button>
   const head = <SecHead title={`${b.places} places`} tag={<Urg u={b.id} />} meta={`${b.reason}.`} />
 
   if (bi < 0) {
@@ -342,7 +346,7 @@ function BucketView() {
       : confirm ? <><span className="p-grow">Retire {retire.places} places in {retire.assets} assets?</span>
           <button className="p-btn" onClick={() => setConfirm(false)}>Cancel</button>
           <button className="p-btn primary" onClick={() => { set({ retired: true }); setConfirm(false); say(`${retire.assets} assets retired. Owners have 14 days to object.`) }}>Retire</button></>
-      : <><span className="p-grow" /><button className="p-btn primary" onClick={() => setConfirm(true)}>Retire {retire.assets} assets</button></>
+      : <><span className="p-grow" /><button className="p-btn primary" onClick={() => setConfirm(true)}><BtnIc d={ICON.archive}>Retire {retire.assets} assets</BtnIc></button></>
     return (
       <ChangeFrame onBack={back} footer={footer}>
         {head}
@@ -380,9 +384,9 @@ function BucketView() {
   }
   const footer = open.length > 0
     ? <>{toNext}<span className="p-grow" /><button className="p-btn primary" disabled={!picked.length} onClick={() => publish(picked)}>
-        Approve & Publish {picked.length} {picked.length === 1 ? 'group' : 'groups'} · {reach(picked).n} places</button></>
+        <Ic d={ICON.check} size={15} />Approve & Publish {picked.length} {picked.length === 1 ? 'group' : 'groups'} · {reach(picked).n} places</button></>
     : <><span className="p-chip ok">All groups published</span><span className="p-grow" />
-        {next ? <button className="p-btn primary" onClick={() => set({ bucket: next.id })}>Next: {next.id} · {next.places}</button>
+        {next ? <button className="p-btn primary" onClick={() => set({ bucket: next.id })}>Next: {next.id} · {next.places}<Ic d={ICON.arrow} size={15} /></button>
           : <button className="p-btn primary" onClick={back}>Back to all levels</button>}</>
   return (
     <ChangeFrame onBack={back} footer={footer}>
@@ -431,7 +435,7 @@ function BucketView() {
           <Avatars names={b.sellers} />
           <span className="p-grow">{b.copies} copies are in buyer inboxes and cannot be edited. {b.sellers.join(', ')} get a note with the updated file.</span>
           {alerted.includes(b.id) ? <span className="p-chip ok">Alerted</span>
-            : <button className="p-btn" onClick={() => { set({ alerted: [...alerted, b.id] }); say(`${b.sellers.length} sellers alerted.`) }}>Alert {b.sellers.length} sellers</button>}
+            : <button className="p-btn" onClick={() => { set({ alerted: [...alerted, b.id] }); say(`${b.sellers.length} sellers alerted.`) }}><BtnIc d={ICON.bell}>Alert {b.sellers.length} sellers</BtnIc></button>}
         </div>
       </section>
     </ChangeFrame>

@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { change, claimHistory, facts, impactAssets, library, merge, messages, scan, v7, type LibAsset, type Part } from '../data/ledgerly'
 import { useProto, notHere, scanLinked, spotsLeft, allDone } from './store'
-import { AiBadge, Avatar, Dropdown, FileType, Head, ICON, Ic, Sheet } from './ui'
+import { AiBadge, Avatar, BtnIc, Dropdown, FileType, Head, ICON, Ic, Meta, Sheet } from './ui'
 
 const healthClass = (h: string) => (h === 'Current' ? 'ok' : h === 'In review' ? 'review' : 'warn')
 const healthRank = (h: string) => (h === 'Current' ? 2 : h === 'In review' ? 1 : 0)
@@ -15,7 +15,7 @@ export function Scan() {
   const decide = (i: number, v: 'ok' | 'no' | 'sent') => set({ scanDone: { ...scanDone, [i]: v } })
   const footer = <><span className="p-counter"><b>{spotsLeft(s)}</b> of {scan.total} spots left</span><span className="p-grow" /><button className="p-btn primary" onClick={() => s.go(s.base)}>Done</button></>
   return (
-    <Sheet title="Scan results" sub="Library · Plain text that matches a fact" onClose={() => s.go(s.base)} footer={footer}>
+    <Sheet title="Scan results" sub={<Meta items={[[ICON.folder, 'Library'], [ICON.spark, 'Plain text that matches a fact']]} />} onClose={() => s.go(s.base)} footer={footer}>
       <p className="p-intro">Linked spots update by themselves on the next change.</p>
       <div className="p-stack">
         {scan.patterns.map((p, i) => {
@@ -35,9 +35,9 @@ export function Scan() {
                 <div className="p-acts">
                   <button className="p-btn" disabled title="Needs real content to show each spot">See spots</button>
                 {done ? <span className={`p-chip ${done === 'no' ? '' : 'ok'}`}>{done === 'ok' ? 'Linked' : done === 'sent' ? `${p.newFact!.owner} notified` : 'Rejected'}</span>
-                  : isNew ? <button className="p-btn primary" onClick={() => { decide(i, 'sent'); say(`${p.newFact!.owner} asked to create {${p.newFact!.token}}.`) }}>Notify {p.newFact!.owner}</button>
+                  : isNew ? <button className="p-btn primary" onClick={() => { decide(i, 'sent'); say(`${p.newFact!.owner} asked to create {${p.newFact!.token}}.`) }}><BtnIc d={ICON.bell}>Notify {p.newFact!.owner}</BtnIc></button>
                   : <>
-                      <button className="p-btn primary" onClick={() => decide(i, 'ok')}>Link {p.spots}</button>
+                      <button className="p-btn primary" onClick={() => decide(i, 'ok')}><BtnIc d={ICON.link}>Link {p.spots}</BtnIc></button>
                       <button className="p-btn" onClick={() => decide(i, 'no')}>Reject</button>
                     </>}
                 </div>
@@ -55,8 +55,8 @@ export function Scan() {
         </div>
       </div>
       {s.untokOpen && (
-        <Sheet title={`${un.length} spots that cannot hold tokens`} sub="PDFs and video" onBack={() => set({ untokOpen: false })} onClose={() => set({ untokOpen: false })}
-          footer={<><span className="p-grow" />{flagged ? <span className="p-chip ok">Flagged for replacement</span> : <button className="p-btn primary" onClick={() => { set({ flagged: true }); say(`${un.length} spots flagged. Their owners get a task.`) }}>Flag all for replacement</button>}</>}>
+        <Sheet title={`${un.length} spots that cannot hold tokens`} sub={<Meta items={[[ICON.pdf, 'PDFs'], [ICON.film, 'Video']]} />} onBack={() => set({ untokOpen: false })} onClose={() => set({ untokOpen: false })}
+          footer={<><span className="p-grow" />{flagged ? <span className="p-chip ok">Flagged for replacement</span> : <button className="p-btn primary" onClick={() => { set({ flagged: true }); say(`${un.length} spots flagged. Their owners get a task.`) }}><BtnIc d={ICON.flag}>Flag all for replacement</BtnIc></button>}</>}>
           <table className="p-table">
             <thead><tr><th>Asset</th><th>Where</th><th>What</th></tr></thead>
             <tbody>{un.map(([a, where, what]) => <tr key={a + where} className="static"><td><b>{a}</b></td><td>{where}</td><td className="p-muted">{what}</td></tr>)}</tbody>
@@ -78,10 +78,10 @@ export function Merge() {
         <button className="p-btn" onClick={() => { set({ notDup: true }); say('Kept as separate assets.') }}>Not duplicates</button>
         <button className="p-btn" onClick={() => setDiffs(d => !d)}>{diffs ? 'Hide differences' : 'Review differences'}</button>
         <span className="p-grow" />
-        <button className="p-btn primary" onClick={() => { set({ merged: true }); say(`Merged. ${merge.archive} versions archived. Links still work.`) }}>Merge into {merge.keep}</button>
+        <button className="p-btn primary" onClick={() => { set({ merged: true }); say(`Merged. ${merge.archive} versions archived. Links still work.`) }}><BtnIc d={ICON.merge}>Merge into {merge.keep}</BtnIc></button>
       </>
   return (
-    <Sheet title={`${merge.versions} versions of ${merge.asset}`} sub="Library · Duplicates" onClose={() => go(base)} footer={footer}>
+    <Sheet title={`${merge.versions} versions of ${merge.asset}`} sub={<Meta items={[[ICON.folder, 'Library'], [ICON.copies, 'Duplicates'], [ICON.users, 'Enablement']]} />} onClose={() => go(base)} footer={footer}>
       <p className="p-intro">Found by comparing slide text and images across the library.</p>
       <table className="p-table">
         <thead><tr><th>Group</th><th>Versions</th><th>Difference</th></tr></thead>
@@ -113,7 +113,7 @@ export function Claims() {
   return (
     <>
       <Head title="Claims" sub="Every fact and message your content repeats. Each has one owner and one source.">
-        <button className="p-btn" onClick={notHere}>Add claim</button>
+        <button className="p-btn" onClick={notHere}><BtnIc d={ICON.plus}>Add claim</BtnIc></button>
       </Head>
       <div className="p-tabs">
         <button className={tab === 'facts' ? 'on' : ''} onClick={() => setTab('facts')}>Facts ({rows.length})</button>
@@ -154,7 +154,7 @@ export function Claim() {
   return (
     <>
       <Head title={f.label} sub={<code>{`{${f.token}}`}</code>}>
-        {isDiscount && <button className="p-btn primary" onClick={() => s.go('impact')}>Open the change</button>}
+        {isDiscount && <button className="p-btn primary" onClick={() => s.go('impact')}>Open the change<Ic d={ICON.arrow} size={15} /></button>}
       </Head>
       <div className="p-three">
         <div className="p-card"><div className="p-card-title">Value</div><b className="p-big">{f.value}</b>{isDiscount && <span className="p-muted">Changing to {change.to}</span>}</div>
@@ -197,7 +197,7 @@ export function Library() {
   return (
     <>
       <Head title="All content" sub={`${rows.length} of 1,240 assets match. Sorted by health.`}>
-        <button className="p-btn" onClick={notHere}>Upload</button>
+        <button className="p-btn" onClick={notHere}><BtnIc d={ICON.upload}>Upload</BtnIc></button>
       </Head>
       <div className="p-filters">
         {keys.map(k => <Dropdown key={k} label={k[0].toUpperCase() + k.slice(1)} value={f[k]} options={opts(k)} onChange={v => setF({ ...f, [k]: v })} />)}
@@ -272,7 +272,7 @@ export function Asset() {
           <p>Downloaded by <b>{v7.downloads} sellers</b>. {v7.oldCopies.length} still hold version 6.</p>
           {v7.oldCopies.map(([n, w]) => <div key={n} className="p-row"><Avatar name={n} size={26} /><span className="p-grow"><b>{n}</b><br /><span className="p-muted p-small">{w}</span></span></div>)}
           {v6Asked ? <span className="p-chip ok">Asked to switch to v7</span>
-            : <button className="p-btn" onClick={() => { set({ v6Asked: true }); say(`Asked ${v7.oldCopies.length} sellers to switch to v7.`) }}>Ask them to switch to v7</button>}
+            : <button className="p-btn" onClick={() => { set({ v6Asked: true }); say(`Asked ${v7.oldCopies.length} sellers to switch to v7.`) }}><BtnIc d={ICON.send}>Ask them to switch to v7</BtnIc></button>}
         </div>
       </div>
     </>
