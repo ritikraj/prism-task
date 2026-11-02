@@ -170,7 +170,7 @@ export const v7 = {
 }
 
 export const claimHistory: Record<string, [string, string][]> = {
-  annual_discount: [['Nov 2', 'Finance changed 20% to 15%, effective Nov 1'], ['Mar 1', 'Finance set 20%'], ['Jan 10', 'Created from the pricing sheet']],
+  annual_discount: [['Nov 2', 'Finance changed 20% to 15%'], ['Mar 1', 'Finance set 20%'], ['Jan 10', 'Created from the pricing sheet']],
 }
 
 export const priya = {
@@ -179,7 +179,7 @@ export const priya = {
   sentCopy: 'Proposal PDF emailed to Halden on Oct 12, says 20%',
 }
 export const sellerAlert = [
-  'Annual discount is now 15% (was 20%), from Nov 1.',
+  'Annual discount is now 15% (was 20%).',
   'Say: "Annual billing saves 15%."',
   'Updated for you: Halden renewal proposal.',
   'You emailed Halden the 20% version on Oct 12.',
@@ -201,11 +201,11 @@ export const dashboard = {
   sellersTrend: [12, 9, 14, 11, 8, 63],
 }
 // Earlier changes, already closed (for "View all").
-export const pastChanges: [string, string, string, number][] = [
-  ['Starter price: $27 to $29', '1 fact changed', 'Oct 1', 188],
-  ['SOC 2 Type II renewed', '1 fact changed', 'Sep 12', 96],
-  ['SSO on all plans', '1 fact changed', 'Aug 30', 84],
-  ['Q3 APAC pricing update', '9 facts changed', 'Jul 1', 142],
+export const pastChanges: [string, string, number][] = [
+  ['Starter price: $27 to $29', '1 fact changed', 188],
+  ['SOC 2 Type II renewed', '1 fact changed', 96],
+  ['SSO on all plans', '1 fact changed', 84],
+  ['Q3 APAC pricing update', '9 facts changed', 142],
 ]
 
 // Annual discount change, by urgency. 160 token places are already updated; these four hold the other 296.

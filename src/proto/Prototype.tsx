@@ -121,7 +121,7 @@ function Home() {
     <article key="a" className="p-change-card" onClick={() => go('impact')}>
       <div className="p-card-top"><span className="p-chip">1 fact changed</span><span className="p-grow" />{a && <span className={`p-chip ${a === 'Published' ? 'ok' : ''}`}>{a}</span>}</div>
       <h2>{change.title}</h2>
-      <p className="p-muted p-small">{change.source} sync, {change.synced}. Effective {change.effective}.</p>
+      <p className="p-muted p-small">{change.source} sync, {change.synced}.</p>
       <Stats items={[[<b>{change.places}</b>, 'places'], [<b>{buckets[0].places}</b>, 'urgent']]} />
     </article>,
     <article key="c" className="p-change-card" onClick={() => go('scan')}>
@@ -256,14 +256,14 @@ function SkeletonCharts() {
 }
 
 // Everything: open changes, the scan, duplicates, then closed changes. Home's "View all (n)" counts these.
-type Row = [string, string, string, string, number | string, () => void]
+type Row = [string, string, string, number | string, () => void]
 function useAllRows(): Row[] {
   const s = useProto()
   return [
-    [change.title, '1 fact changed', statusA(s), change.effective, change.places, () => s.go('impact')],
-    [`AI found ${scan.total} spots that could become tokens`, 'Scan result', Object.keys(s.scanDone).length > 0 ? 'In progress' : '', '—', scan.total, () => s.go('scan')],
-    [`${merge.versions} versions of ${merge.asset}`, 'Duplicates', s.merged ? 'Merged' : '', '—', '—', () => s.go('merge')],
-    ...pastChanges.map(([t, k, eff, p]): Row => [t, k, 'Closed', eff, p, notHere]),
+    [change.title, '1 fact changed', statusA(s), change.places, () => s.go('impact')],
+    [`AI found ${scan.total} spots that could become tokens`, 'Scan result', Object.keys(s.scanDone).length > 0 ? 'In progress' : '', scan.total, () => s.go('scan')],
+    [`${merge.versions} versions of ${merge.asset}`, 'Duplicates', s.merged ? 'Merged' : '', '—', () => s.go('merge')],
+    ...pastChanges.map(([t, k, p]): Row => [t, k, 'Closed', p, notHere]),
   ]
 }
 
@@ -274,9 +274,9 @@ function AllChanges() {
   return (
     <Sheet title={`All (${rows.length})`} onClose={() => set({ allOpen: false })}>
       <table className="p-table">
-        <thead><tr><th>Item</th><th>Type</th><th>Status</th><th>Effective</th><th>Places</th></tr></thead>
-        <tbody>{rows.map(([t, k, st, eff, p, open]) => (
-          <tr key={t} onClick={open}><td><b>{t}</b></td><td><span className="p-chip">{k}</span></td><td>{st && <span className={`p-chip ${st === 'Published' || st === 'Merged' ? 'ok' : ''}`}>{st}</span>}</td><td>{eff}</td><td>{p}</td></tr>
+        <thead><tr><th>Item</th><th>Type</th><th>Status</th><th>Places</th></tr></thead>
+        <tbody>{rows.map(([t, k, st, p, open]) => (
+          <tr key={t} onClick={open}><td><b>{t}</b></td><td><span className="p-chip">{k}</span></td><td>{st && <span className={`p-chip ${st === 'Published' || st === 'Merged' ? 'ok' : ''}`}>{st}</span>}</td><td>{p}</td></tr>
         ))}</tbody>
       </table>
     </Sheet>

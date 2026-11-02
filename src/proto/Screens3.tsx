@@ -183,7 +183,7 @@ export function Claim() {
         {isDiscount && <button className="p-btn primary" onClick={() => s.go('impact')}>Open the change</button>}
       </Head>
       <div className="p-three">
-        <div className="p-card"><div className="p-card-title">Value</div><b className="p-big">{f.value}</b>{isDiscount && <span className="p-muted">Changing to {change.to}, effective {change.effective}</span>}</div>
+        <div className="p-card"><div className="p-card-title">Value</div><b className="p-big">{f.value}</b>{isDiscount && <span className="p-muted">Changing to {change.to}</span>}</div>
         <div className="p-card"><div className="p-card-title">Where it is used</div><b className="p-big">{f.usedIn}</b><span className="p-muted">{linked} linked as tokens, {f.usedIn - linked} as plain text</span></div>
         <div className="p-card"><div className="p-card-title">Who can edit</div><b>{f.owner}</b><span className="p-muted">Changes sync from {f.source}. Enablement can propose a change; {f.owner} approves it.</span></div>
       </div>
