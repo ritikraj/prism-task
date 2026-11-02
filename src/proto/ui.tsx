@@ -20,6 +20,55 @@ export const Ic = ({ d, size = 16 }: { d: string; size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>
 )
 
+// Icon paths used across screens.
+export const ICON = {
+  tag: 'M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9zM7.5 7.5h.01',
+  copies: 'M8 8h11a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1zM16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3',
+  spark: 'M11 2l2.3 6.7L20 11l-6.7 2.3L11 20l-2.3-6.7L2 11l6.7-2.3z',
+  search: 'M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM21 21l-4.3-4.3',
+  check: 'M5 12l5 5 9-11',
+  chevron: 'M9 6l6 6-6 6',
+  deck: 'M3 4h18M4 4v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V4M12 15v5M8 20h8',
+  doc: 'M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8zM14 3v5h5M9 13h6M9 17h6',
+  pdf: 'M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8zM14 3v5h5',
+  video: 'M4 6h11a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1zM16 10l5-3v10l-5-3',
+  bolt: 'M13 2L4 14h7l-1 8 9-12h-7z',
+  users: 'M16 20v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 20v-1a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8',
+  archive: 'M3 4h18v4H3zM5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M10 12h4',
+  star: 'M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z',
+  link: 'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1',
+}
+
+// A tinted square holding an icon: the type of a card at a glance.
+export const Tile = ({ d, tone = 'accent' }: { d: string; tone?: 'accent' | 'ai' | 'warn' | 'ok' | 'muted' }) => (
+  <span className={`p-tile ${tone}`}>{tone === 'ai' ? <span className="ai-ic" /> : <Ic d={d} size={18} />}</span>
+)
+
+// Initials on a soft colour picked from the name, so the same person always looks the same.
+const hue = (s: string) => [...s].reduce((n, c) => n + c.charCodeAt(0), 0) % 6
+export const Avatar = ({ name, size = 24 }: { name: string; size?: number }) => (
+  <span className={`p-av av${hue(name)}`} style={{ width: size, height: size, fontSize: size * 0.42 }} title={name}>
+    {name.split(' ').map(w => w[0]).slice(0, 2).join('')}
+  </span>
+)
+export const Avatars = ({ names, max = 4 }: { names: string[]; max?: number }) => (
+  <span className="p-avs">
+    {names.slice(0, max).map(n => <Avatar key={n} name={n} />)}
+    {names.length > max && <span className="p-av more">+{names.length - max}</span>}
+  </span>
+)
+
+// File type: a small icon and its name.
+const TYPE_ICON: Record<string, string> = { Deck: ICON.deck, Doc: ICON.doc, PDF: ICON.pdf, Video: ICON.video }
+export const FileType = ({ type }: { type: string }) => (
+  <span className={`p-ftype ft-${type.toLowerCase()}`}><Ic d={TYPE_ICON[type] ?? ICON.doc} size={14} />{type}</span>
+)
+
+// Old sentence struck through in red, new one in green: reads as a change at a glance.
+export const Diff = ({ old, next, big }: { old: ReactNode; next: ReactNode; big?: boolean }) => (
+  <div className={`p-diff ${big ? 'big' : ''}`}><del>{old}</del><ins>{next}</ins></div>
+)
+
 // Floating side panel: back + title + meta + close, a scrolling body, and an optional fixed footer
 // that holds the panel's actions. Esc closes only the topmost one.
 export function Sheet({ title, sub, tabs, onBack, footer, onClose, children }: {

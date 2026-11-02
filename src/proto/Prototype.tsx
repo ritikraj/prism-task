@@ -9,7 +9,7 @@ import {
   useProto, notHere, groups, judgment, GUIDE, ORDER, allDone, bucketDone, spotsLeft, CHANGE_ROUTES, LIBRARY_ROUTES, MODAL_ROUTES, CLAIM_ROUTES, scanLinked,
   type Route,
 } from './store'
-import { AiBadge, Conf, Head, Ic, SecHead, Sheet, Stats } from './ui'
+import { AiBadge, Avatar, Avatars, Conf, Diff, Head, ICON, Ic, SecHead, Sheet, Stats, Tile } from './ui'
 import { Asset, Claim, Claims, Library, Merge, Scan } from './Screens3'
 
 const SCREENS: Record<Route, () => JSX.Element> = {
@@ -56,17 +56,23 @@ export default function Prototype() {
         <nav className="p-rail">
           <div className="p-mark">P</div>
           {RAIL.map(([label, d, r]) => (
-            <button key={label} className={`p-rail-btn ${r === section ? 'on' : ''}`} title={label} aria-label={label} onClick={() => (r ? go(r) : notHere())}><Ic d={d} size={20} /></button>
+            <button key={label} className={`p-rail-btn ${r === section ? 'on' : ''}`} aria-label={label} onClick={() => (r ? go(r) : notHere())}>
+              <span className="p-rail-ic"><Ic d={d} size={19} /></span><span className="p-rail-label">{label}</span>
+            </button>
           ))}
           <div className="p-grow" />
-          <button className="p-rail-btn" title="Settings" aria-label="Settings" onClick={notHere}><Ic d={GEAR} size={20} /></button>
-          <div className="p-avatar" title={`${admin.name}, ${admin.role}`}>{admin.initials}</div>
+          <button className="p-rail-btn" aria-label="Settings" title="Settings" onClick={notHere}><span className="p-rail-ic"><Ic d={GEAR} size={19} /></span></button>
+          <span className="p-me" title={`${admin.name}, ${admin.role}`}><Avatar name={admin.name} size={32} /><i /></span>
         </nav>
         <div className="p-body">
           <header className="p-top">
-            {crumbs.map((c, i) => i < crumbs.length - 1
-              ? <span key={c}><button className="p-crumb" onClick={() => go(section)}>{c}</button><span className="p-sep">/</span></span>
-              : <span key={c} className="p-crumb-now">{c}</span>)}
+            <div className="p-crumbs">
+              {crumbs.map((c, i) => i < crumbs.length - 1
+                ? <span key={c}><button className="p-crumb" onClick={() => go(section)}>{c}</button><span className="p-sep">/</span></span>
+                : <span key={c} className="p-crumb-now">{c}</span>)}
+            </div>
+            <button className="p-search" onClick={notHere}><Ic d={ICON.search} size={15} /><span className="p-grow">Search {company.name} content</span><kbd>Ctrl K</kbd></button>
+            <div className="p-top-end" />
           </header>
           <div className="p-panel">
             <main className={`p-main ${page === 'library' ? 'fixed' : ''}`}><div className="p-container"><Screen /></div></main>
@@ -128,32 +134,37 @@ function Home() {
   // Progress sits on each card's bottom edge instead of a status chip.
   const changeDone = allDone(s) ? change.places
     : lanes.tokens + ORDER.reduce((n, _, bi) => n + bucketDone(s, bi), 0) + (s.retired ? buckets[3].places : 0)
+  const scanDone = (scan.total - spotsLeft(s)) / scan.total
+  const synced = `${change.source} · ${change.synced[0].toUpperCase()}${change.synced.slice(1)}`
   const cards = [
     <article key="a" className="p-change-card" onClick={() => go('impact')}>
-      <div className="p-card-top"><span className="p-chip">1 fact changed</span></div>
+      <div className="p-card-top"><Tile d={ICON.tag} tone="warn" /><span className="p-grow" /><span className="p-chip">1 fact changed</span></div>
       <h2>{change.title}</h2>
-      <p className="p-muted p-small">{change.source} sync, {change.synced}.</p>
-      <Stats items={[[<b>{change.places}</b>, 'places'], [<b>{buckets[0].places}</b>, 'urgent']]} />
+      <p className="p-meta">{synced}</p>
+      <div className="p-card-foot"><Stats items={[[<b>{change.places}</b>, 'places'], [<b className="p-hot">{buckets[0].places}</b>, 'urgent']]} /></div>
       <CardProgress of={changeDone / change.places} />
     </article>,
     <article key="c" className="p-change-card" onClick={() => go('scan')}>
-      <div className="p-card-top"><AiBadge label="Scan result" /></div>
+      <div className="p-card-top"><Tile d={ICON.spark} tone="ai" /><span className="p-grow" /><AiBadge label="Scan result" /></div>
       <h2>We found {scan.total} spots that could become tokens</h2>
-      <p className="p-muted p-small">Once linked, the next change updates them by itself.</p>
-      <CardProgress of={(scan.total - spotsLeft(s)) / scan.total} />
+      <p className="p-meta">Library · Once linked, the next change updates them by itself</p>
+      <div className="p-card-foot"><Stats items={[[<b>{spotsLeft(s)}</b>, 'spots left'], [<b>{scan.patterns.length}</b>, 'patterns']]} /></div>
+      <CardProgress of={scanDone} />
     </article>,
     <article key="d" className="p-change-card" onClick={() => go('merge')}>
-      <div className="p-card-top"><span className="p-chip">Duplicates</span></div>
-      <CardProgress of={merged ? 1 : 0} />
+      <div className="p-card-top"><Tile d={ICON.copies} tone="muted" /><span className="p-grow" /><span className="p-chip">Duplicates</span></div>
       <h2>{merge.versions} versions of {merge.asset}</h2>
-      <p className="p-muted p-small">Merge them and future changes touch {merge.keep} assets, not {merge.versions}.</p>
+      <p className="p-meta">Library · Merge them and future changes touch {merge.keep} assets</p>
+      <div className="p-card-foot"><Stats items={[[<b>{merge.versions}</b>, 'versions'], [<b>{merge.keep}</b>, 'after merging']]} /></div>
+      <CardProgress of={merged ? 1 : 0} />
     </article>,
   ]
+  const open = [changeDone < change.places, scanDone < 1, !merged].filter(Boolean).length
   return (
     <>
-      <Head title={`Good morning, ${admin.name.split(' ')[0]}`} sub={`${company.name} content, ${today}.`} />
+      <Head title={`Good morning, ${admin.name.split(' ')[0]}`} sub={open ? `${open} ${open === 1 ? 'thing needs' : 'things need'} you today · ${today}` : `You are all caught up · ${today}`} />
       <section className="p-sec">
-        <div className="p-row p-table-head"><span className="p-card-title p-grow">Needs attention</span><button className="p-link" onClick={() => set({ allOpen: true })}>View all ({total})</button></div>
+        <div className="p-sec-row"><h2>Needs attention</h2><span className="p-grow" /><button className="p-link" onClick={() => set({ allOpen: true })}>View all ({total})</button></div>
         <Carousel>{cards}</Carousel>
       </section>
       <Dashboard />
@@ -196,32 +207,34 @@ function Dashboard() {
   const { weeks, health, sellersTrend: t } = dashboard
   const max = Math.max(...weeks.map(w => w[1])), top = Math.max(...t)
   const line = t.map((v, i) => `${(i * 160) / (t.length - 1)},${44 - (v / top) * 40}`).join(' ')
+  const jump = t[t.length - 1] - t[t.length - 2]
   return (
     <section className="p-sec">
-      <div className="p-card-title">Library at a glance</div>
+      <div className="p-sec-row"><h2>Library at a glance</h2></div>
       <div className="p-dash">
-        <div className="p-card">
-          <div className="p-card-title">Asset health</div>
-          <b className="p-big">{dashboard.assets.toLocaleString('en-US')}</b>
+        <div className="p-kpi">
+          <div className="p-kpi-top"><span>Asset health</span></div>
+          <b className="p-big">{dashboard.assets.toLocaleString('en-US')}<small>assets</small></b>
           <div className="p-hbar">{health.map(([l, n], i) => <span key={l} className={`h${i}`} style={{ flexGrow: n }} />)}</div>
           <div className="p-legend">{health.map(([l, n], i) => <span key={l}><i className={`h${i}`} />{l} <b>{n.toLocaleString('en-US')}</b></span>)}</div>
         </div>
-        <div className="p-card">
-          <div className="p-card-title">Updates by itself</div>
+        <div className="p-kpi">
+          <div className="p-kpi-top"><span>Updates by itself</span></div>
           <b className="p-big">{pct}%</b>
           <div className="p-meter"><span style={{ width: `${pct}%` }} /></div>
           <span className="p-muted p-small">{linked} of {places} claim places hold tokens. Linking the scan raises this.</span>
         </div>
-        <div className="p-card">
-          <div className="p-card-title">Changes synced per week</div>
+        <div className="p-kpi">
+          <div className="p-kpi-top"><span>Changes synced</span></div>
+          <b className="p-big">{weeks[weeks.length - 1][1]}<small>this week</small></b>
           <svg viewBox="0 0 160 56" className="p-chart" aria-label="Changes synced per week">
-            {weeks.map(([w, n], i) => <rect key={w} x={i * 20 + 3} y={54 - (n / max) * 50} width={14} height={(n / max) * 50} rx={2} className={i === weeks.length - 1 ? 'on' : ''} />)}
+            {weeks.map(([w, n], i) => <rect key={w} x={i * 20 + 3} y={54 - (n / max) * 50} width={14} height={(n / max) * 50} rx={3} className={i === weeks.length - 1 ? 'on' : ''} />)}
           </svg>
           <div className="p-axis"><span>{weeks[0][0]}</span><span>This week</span></div>
         </div>
-        <div className="p-card">
-          <div className="p-card-title">Sellers on outdated content</div>
-          <b className="p-big">{sellersAtRisk.withMeetings}</b>
+        <div className="p-kpi">
+          <div className="p-kpi-top"><span>Sellers on outdated content</span><span className="p-delta up">+{jump}</span></div>
+          <b className="p-big">{sellersAtRisk.withMeetings}<small>sellers</small></b>
           <svg viewBox="-4 0 168 48" className="p-chart spark" aria-label="Sellers on outdated content, last 6 weeks">
             <polyline points={line} /><circle cx={160} cy={44 - (t[t.length - 1] / top) * 40} r={3.5} />
           </svg>
@@ -269,24 +282,42 @@ function Overview() {
   const footer = first
     ? <><span className="p-grow" /><button className="p-btn primary" onClick={() => open(first.id)}>{first.id === 'Low' ? 'Retire Low' : `Review ${first.id}`} · {first.places - doneIn(first, buckets.indexOf(first))}</button></>
     : <><span className="p-grow" /><button className="p-btn primary" onClick={() => s.go(s.base)}>Done</button></>
+  // Where the 456 places stand: tokens, published by hand, retired, and what is left.
+  const published = ORDER.reduce((n, _, bi) => n + bucketDone(s, bi), 0)
+  const retired = s.retired ? buckets[3].places : 0
+  const current = lanes.tokens + published + retired
+  const seg: [string, number, string][] = [['Updated by tokens', lanes.tokens, 'tok'], ['Published', published, 'pub'], ['Retired', retired, 'ret'], ['Left', change.places - current, 'left']]
   return (
     <ChangeFrame footer={footer}>
-      <div className="p-done-strip"><Ic d="M5 12l5 5 9-11" /><span><b>{lanes.tokens} places already updated</b> by tokens when {change.owner} confirmed {change.to}.</span></div>
-      <div className="p-buckets">{buckets.map((b, bi) => {
-        const done = doneIn(b, bi)
-        return (
-          <div key={b.id} className={`p-bucket ${done === b.places ? 'done' : ''}`} onClick={() => open(b.id)}>
-            <span className="p-row"><Urg u={b.id} /><span className="p-grow" />{done === b.places && <span className="p-chip ok">{b.id === 'Low' ? 'Retired' : 'Published'}</span>}</span>
-            <b className="p-big">{b.places - done}</b>
-            <span className="p-muted p-small">{done ? `of ${b.places} places left` : 'places'}</span>
-            <span className="p-small p-muted p-fill">{b.reason}</span>
-            {done > 0 && <span className="p-meter"><span style={{ width: `${(done / b.places) * 100}%` }} /></span>}
-            <button className="p-btn tertiary" onClick={e => { e.stopPropagation(); open(b.id) }}>
-              {done === b.places ? 'View' : done ? 'Continue' : b.id === 'Low' ? 'Retire' : 'Review'}
-            </button>
-          </div>
-        )
-      })}</div>
+      <div className="p-progress">
+        <div className="p-progress-top">
+          <b className="p-big">{Math.round((current / change.places) * 100)}%</b>
+          <span className="p-muted">{current} of {change.places} places show {change.to}</span>
+        </div>
+        <div className="p-seg">{seg.map(([l, n, k]) => n > 0 && <span key={k} className={k} style={{ flexGrow: n }} title={`${l}: ${n}`} />)}</div>
+        <div className="p-seg-legend">{seg.map(([l, n, k]) => <span key={k}><i className={k} />{l} <b>{n}</b></span>)}</div>
+      </div>
+      <section className="p-sec">
+        <div className="p-sec-row"><h2>By urgency</h2><span className="p-grow" /><span className="p-muted p-small">Urgent first. Each level says why its places sit there.</span></div>
+        <div className="p-buckets">{buckets.map((b, bi) => {
+          const done = doneIn(b, bi)
+          const all = done === b.places
+          return (
+            <div key={b.id} className={`p-bucket ${all ? 'done' : ''}`} onClick={() => open(b.id)}>
+              <div className="p-bucket-id"><Urg u={b.id} /></div>
+              <div className="p-bucket-n"><b>{b.places - done}</b><span>{done ? `of ${b.places} left` : 'places'}</span></div>
+              <div className="p-bucket-why">
+                <span>{b.reason}</span>
+                {done > 0 && !all && <span className="p-meter"><span style={{ width: `${(done / b.places) * 100}%` }} /></span>}
+              </div>
+              {all ? <span className="p-chip ok"><Ic d={ICON.check} size={11} />{b.id === 'Low' ? 'Retired' : 'Published'}</span>
+                : <button className="p-btn tertiary" onClick={e => { e.stopPropagation(); open(b.id) }}>
+                    {done ? 'Continue' : b.id === 'Low' ? 'Retire' : 'Review'}<Ic d={ICON.chevron} size={14} />
+                  </button>}
+            </div>
+          )
+        })}</div>
+      </section>
     </ChangeFrame>
   )
 }
@@ -357,8 +388,8 @@ function BucketView() {
     <ChangeFrame onBack={back} footer={footer}>
       {head}
       <section className="p-sec">
-        <div className="p-row p-table-head">
-          <span className="p-card-title p-grow ai-label"><AiBadge />We found the same sentence in {mine.length} groups</span>
+        <div className="p-sec-row">
+          <h2 className="ai-label"><AiBadge />We found the same sentence in {mine.length} groups</h2><span className="p-grow" />
           {open.length > 1 && <button className="p-link" onClick={() => setSkip(picked.length ? open.map(g => g.id) : [])}>{picked.length ? 'Clear all' : 'Select all'}</button>}
         </div>
         {mine.map(g => {
@@ -371,7 +402,7 @@ function BucketView() {
             <div key={g.id} className={`p-card p-pick ${done ? 'done' : on ? 'on' : ''}`} onClick={() => !done && toggle(g.id)}>
               <span className={`p-box ${done || on ? 'on' : ''}`} role="checkbox" aria-checked={!!done || on} aria-disabled={!!done}>{(done || on) && <Ic d="M5 12l5 5 9-11" size={12} />}</span>
               <div className="p-grow">
-                <div className="p-diff"><s>{g.old}</s><span>{g.next}</span></div>
+                <Diff old={g.old} next={g.next} />
                 <div className="p-muted p-small">{here} places here · e.g. {sample[0]}: {sample[1]}</div>
                 {!done && elsewhere > 0 && (
                   <label className="p-check p-small" onClick={e => e.stopPropagation()}>
@@ -386,11 +417,11 @@ function BucketView() {
         })}
       </section>
       <section className="p-sec">
-        <div className="p-card-title">Decide one by one · {items.filter(j => !jDone[j.id]).length} of {items.length} left</div>
+        <div className="p-sec-row"><h2>Decide one by one</h2><span className="p-muted p-small">{items.filter(j => !jDone[j.id]).length} of {items.length} left</span></div>
         {items.map(j => (
           <div key={j.id} className={`p-card p-judge ${jDone[j.id] ? 'done' : ''}`}>
             <div className="p-row"><span className="p-muted p-small p-grow">{j.kind} · {j.where}</span><Conf c={j.confidence} /></div>
-            <div className="p-diff"><s>{j.old}</s><span>{j.next}</span></div>
+            <Diff old={j.old} next={j.next} />
             {j.working && <div className="p-working"><span className="p-small ai-label"><AiBadge />How we got here</span>{j.working}</div>}
             <div className="p-actions">
               {jDone[j.id] ? <span className="p-chip ok">{jDone[j.id] === 'ok' ? 'Published' : 'Sent to Product marketing'}</span> : <>
@@ -402,8 +433,9 @@ function BucketView() {
         ))}
       </section>
       <section className="p-sec">
-        <div className="p-card-title">Copies sellers already sent · {b.copies}</div>
+        <div className="p-sec-row"><h2>Copies sellers already sent</h2><span className="p-muted p-small">{b.copies}</span></div>
         <div className="p-card p-row">
+          <Avatars names={b.sellers} />
           <span className="p-grow">{b.copies} copies are in buyer inboxes and cannot be edited. {b.sellers.join(', ')} get a note with the updated file.</span>
           {alerted.includes(b.id) ? <span className="p-chip ok">Alerted</span>
             : <button className="p-btn" onClick={() => { set({ alerted: [...alerted, b.id] }); say(`${b.sellers.length} sellers alerted.`) }}>Alert {b.sellers.length} sellers</button>}

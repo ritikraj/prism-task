@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { change, claimHistory, facts, impactAssets, library, merge, messages, scan, v7, type LibAsset, type Part } from '../data/ledgerly'
 import { useProto, notHere, scanSpots, scanLinked, spotsLeft, allDone } from './store'
-import { AiBadge, Dropdown, Head, Sheet } from './ui'
+import { AiBadge, Avatar, Dropdown, FileType, Head, ICON, Ic, Sheet } from './ui'
 
 const healthClass = (h: string) => (h === 'Current' ? 'ok' : h === 'In review' ? 'review' : 'warn')
 const healthRank = (h: string) => (h === 'Current' ? 2 : h === 'In review' ? 1 : 0)
@@ -32,7 +32,7 @@ export function Scan() {
             <div key={p.text} className={`p-card ${done ? 'done' : ''}`}>
               <div className="p-row">
                 <div className="p-grow">
-                  <div><b>"{p.text}"</b> <span className="p-muted">in {p.spots} spots</span></div>
+                  <div className="p-pattern"><span className="p-quote">“{p.text}”</span><span className="p-muted p-small">{p.spots} spots</span></div>
                   <div className="p-muted p-small">
                     {isNew ? <>No fact holds this yet. Suggested: create <code>{`{${p.newFact!.token}}`}</code>, owned by {p.newFact!.owner}.</>
                       : <>Links to <code>{`{${p.token}}`}</code>{off.length > 0 && `, ${off.length} spots excluded`}</>}
@@ -119,7 +119,7 @@ export function Merge() {
       <div className="p-card">
         <div className="p-card-title ai-label"><AiBadge />Our proposal</div>
         <p>Keep 1 master and 2 regional variants linked to it. Archive {merge.archive}. Usage history and share links move to the master.</p>
-        {merge.result.map(r => <div key={r} className="p-row"><span className="p-grow">{r}</span></div>)}
+        {merge.result.map((r, i) => <div key={r} className="p-row"><span className={`p-ricon ${i ? '' : 'master'}`}><Ic d={i ? ICON.link : ICON.star} size={14} /></span><span className="p-grow">{r}</span></div>)}
         <div className="p-banner">Future pricing changes touch {merge.keep} assets here, not {merge.versions}.</div>
       </div>
     </Sheet>
@@ -145,7 +145,7 @@ export function Claims() {
       </div>
       {tab === 'facts' ? (
         <table className="p-table">
-          <thead><tr><th>Token</th><th>Value</th><th>Owner</th><th>Source</th><th>Last checked</th><th>Linked</th></tr></thead>
+          <thead><tr><th>Token</th><th>Value</th><th>Owner</th><th>Source</th><th>Last checked</th><th>Linked places</th></tr></thead>
           <tbody>{rows.map(f => {
             const linked = f.linked + scanLinked(s, f.token)
             return (
@@ -153,7 +153,7 @@ export function Claims() {
                 <td><code>{`{${f.token}}`}</code></td>
                 <td>{f.value}{f.token === change.token && !allDone(s) && <span className="p-chip warn">Changing to {change.to}</span>}</td>
                 <td>{f.owner}</td><td>{f.source}</td><td>{f.lastChecked}</td>
-                <td>{linked} of {f.usedIn} places</td>
+                <td><span className="p-linked"><span className="p-meter"><span style={{ width: `${(linked / f.usedIn) * 100}%` }} /></span>{linked} of {f.usedIn}</span></td>
               </tr>
             )
           })}</tbody>
@@ -190,12 +190,12 @@ export function Claim() {
           <div className="p-card-title">Top assets</div>
           <table className="p-table">
             <thead><tr><th>Asset</th><th>Type</th><th>Places</th></tr></thead>
-            <tbody>{impactAssets.slice(0, isDiscount ? 6 : 3).map(a => <tr key={a.name} onClick={notHere}><td>{a.name}</td><td>{a.type}</td><td>{a.places}</td></tr>)}</tbody>
+            <tbody>{impactAssets.slice(0, isDiscount ? 6 : 3).map(a => <tr key={a.name} onClick={notHere}><td><b>{a.name}</b></td><td><FileType type={a.type} /></td><td>{a.places}</td></tr>)}</tbody>
           </table>
         </div>
         <div className="p-card">
           <div className="p-card-title">History</div>
-          {history.map(([d, t]) => <div key={d + t} className="p-row"><span className="p-muted p-num">{d}</span><span>{t}</span></div>)}
+          <ol className="p-timeline">{history.map(([d, t]) => <li key={d + t}><span>{t}</span><span className="p-muted p-small">{d}</span></li>)}</ol>
         </div>
       </div>
     </>
@@ -235,8 +235,8 @@ export function Library() {
             return (
               <tr key={a.id} className={live ? '' : 'static'} onClick={live ? () => (a.id === 'v7' ? go('asset') : notHere()) : undefined}>
                 <td><b>{a.name}</b>{a.id === 'v7' && <span className="p-chip">{merged ? '3 linked versions' : '1 of 14 versions'}</span>}</td>
-                <td>{a.type}</td><td>{a.team}</td><td>{a.creator}</td>
-                <td><span className="p-tags">{a.tags.map(t => <span key={t} className="p-tag">{t}</span>)}</span></td>
+                <td><FileType type={a.type} /></td><td>{a.team}</td><td><span className="p-person"><Avatar name={a.creator} size={22} />{a.creator}</span></td>
+                <td><span className="p-tags">{a.tags.slice(0, 2).map(t => <span key={t} className="p-tag">{t}</span>)}{a.tags.length > 2 && <span className="p-tag more" title={a.tags.slice(2).join(", ")}>+{a.tags.length - 2}</span>}</span></td>
                 <td><span className="p-health"><i className={healthClass(a.health)} />{a.health}</span></td><td className="p-muted">{a.updated}</td>
               </tr>
             )
@@ -294,7 +294,7 @@ export function Asset() {
         <div className="p-card">
           <div className="p-card-title">Copies</div>
           <p>Downloaded by <b>{v7.downloads} sellers</b>. {v7.oldCopies.length} still hold version 6.</p>
-          {v7.oldCopies.map(([n, w]) => <div key={n} className="p-row"><b>{n}</b><span className="p-grow p-muted p-small">{w}</span></div>)}
+          {v7.oldCopies.map(([n, w]) => <div key={n} className="p-row"><Avatar name={n} size={26} /><span className="p-grow"><b>{n}</b><br /><span className="p-muted p-small">{w}</span></span></div>)}
           {v6Asked ? <span className="p-chip ok">Asked to switch to v7</span>
             : <button className="p-btn" onClick={() => { set({ v6Asked: true }); say(`Asked ${v7.oldCopies.length} sellers to switch to v7.`) }}>Ask them to switch to v7</button>}
         </div>
