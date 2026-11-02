@@ -317,10 +317,6 @@
 .p-working { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; padding: 12px 14px; border-radius: 10px; background: color-mix(in srgb, var(--p-accent-soft) 55%, var(--p-surface)); border: 1px solid var(--p-accent-line); font-size: 13.5px; color: var(--p-ink-2); }
 
 /* ---------- scan results ---------- */
-.p-stack > .p-card > .p-row { flex-wrap: wrap; }
-.p-stack > .p-card > .p-row > .p-grow { min-width: 200px; }
-.p-pattern { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; }
-.p-quote { font-weight: 600; font-size: 15px; }
 .p-ricon { flex: none; width: 26px; height: 26px; border-radius: 7px; display: grid; place-items: center; background: var(--p-head); color: var(--p-muted); }
 .p-ricon.master { background: var(--p-accent-soft); color: var(--p-accent); }
 
@@ -375,8 +371,6 @@
 .p-table-scroll td:first-child .p-chip { margin-top: 4px; }
 .p-tag.more { background: none; box-shadow: inset 0 0 0 1px var(--p-line-strong); color: var(--p-muted); }
 .p-table-scroll .p-tag { max-width: 110px; overflow: hidden; text-overflow: ellipsis; }
-.p-acts { display: flex; align-items: center; gap: 8px; flex: none; }
-.p-pattern .p-muted { white-space: nowrap; }
 
 /* ---------- review lists: one quiet box of rows, details on demand ---------- */
 .p-lbox { display: flex; flex-direction: column; border: 1px solid var(--p-line); border-radius: var(--p-r-md); background: var(--p-surface); overflow: hidden; }
@@ -389,7 +383,11 @@
 .p-lbox .p-diff { gap: 2px; font-size: 14px; }
 .p-lbox .p-diff del { font-size: 13px; }
 .p-lmeta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 0; margin-top: 6px; font-size: 12.5px; color: var(--p-muted); }
-.p-lmeta > * + *::before { content: "·"; margin: 0 8px; color: var(--p-faint); }
+/* every item gets a leading dot; the one that starts a line is clipped by the negative margin */
+.p-lmeta { margin-left: -17px; }
+.p-lrow > .p-grow { min-width: 0; overflow: hidden; }
+.p-jfoot { overflow: hidden; padding: 2px; margin: -2px; }
+.p-lmeta > *::before { content: "·"; display: inline-block; width: 17px; text-align: center; color: var(--p-faint); }
 .p-lside { flex: none; display: flex; align-items: center; gap: 6px; margin-top: 1px; font-size: 13px; color: var(--p-muted); white-space: nowrap; }
 .p-lside b { color: var(--p-ink); font-weight: 600; font-variant-numeric: tabular-nums; margin-right: 3px; }
 .p-donetag { display: inline-flex; align-items: center; gap: 5px; color: var(--p-ok); font-weight: 500; }
@@ -411,3 +409,26 @@
 .p-jrow .p-whybox { margin-top: 2px; }
 .p-diff del, .p-diff ins { -webkit-box-decoration-break: clone; box-decoration-break: clone; }
 .p-jfoot .p-lside { margin-left: auto; }
+
+/* ---------- scan + duplicates: list rows with a count column ---------- */
+.p-count { flex: none; width: 52px; display: flex; flex-direction: column; align-items: flex-start; line-height: 1.1; padding-top: 1px; }
+.p-count b { font-size: 20px; font-weight: 600; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.p-count span { font-size: 11.5px; color: var(--p-muted); }
+.p-quote { font-size: 15px; font-weight: 600; letter-spacing: -.005em; }
+.p-ltitle { font-weight: 600; }
+.p-linkto { display: inline-flex; align-items: center; gap: 5px; }
+.p-linkto svg { color: var(--p-faint); }
+.p-lmeta code { font-size: 11.5px; padding: 1px 5px; }
+.p-why:disabled { color: var(--p-faint); cursor: not-allowed; text-decoration: none; }
+.p-donetag.off { color: var(--p-muted); }
+.p-lrow-c { align-items: center; }
+.p-lrow > .p-tile { width: 36px; height: 36px; }
+.p-outcome { flex: none; align-self: center; padding: 4px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 500; background: var(--p-head); color: var(--p-ink-2); white-space: nowrap; }
+.p-seg .sent, .p-seg-legend .sent { background: #d29b1f; }
+.p-merge-hero { flex-direction: row; align-items: center; gap: 18px; background: linear-gradient(180deg, color-mix(in srgb, var(--p-accent-soft) 60%, var(--p-surface)), var(--p-surface)); }
+.p-mh { display: flex; flex-direction: column; line-height: 1.1; }
+.p-mh span { font-size: 12.5px; color: var(--p-muted); margin-top: 4px; }
+.p-mh-arrow { color: var(--p-faint); }
+.p-mh-note { max-width: 220px; font-size: 13px; color: var(--p-ink-2); text-align: right; }
+.p-lmeta > * { display: inline-flex; align-items: baseline; }
+.p-lmeta > *::before { flex: none; }

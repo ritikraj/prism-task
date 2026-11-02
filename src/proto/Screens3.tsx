@@ -2,58 +2,74 @@
 import { useState } from 'react'
 import { change, claimHistory, facts, impactAssets, library, merge, messages, scan, v7, type LibAsset, type Part } from '../data/ledgerly'
 import { useProto, notHere, scanLinked, spotsLeft, allDone } from './store'
-import { AiBadge, Avatar, BtnIc, Dropdown, FileType, Head, ICON, Ic, Meta, Sheet } from './ui'
+import { AiBadge, Avatar, BtnIc, Dropdown, FileType, Head, ICON, Ic, Meta, Sheet, Tile } from './ui'
 
 const healthClass = (h: string) => (h === 'Current' ? 'ok' : h === 'In review' ? 'review' : 'warn')
 const healthRank = (h: string) => (h === 'Current' ? 2 : h === 'In review' ? 1 : 0)
 
-// Scan results (Card C): plain text that could become tokens.
+// Scan results (Card C): plain text that could become tokens. One list; each row says what links where.
 export function Scan() {
   const s = useProto()
   const { scanDone, flagged, set, say } = s
   const un = scan.untokenable, video = un.filter(u => u[1].startsWith('Video')).length
   const decide = (i: number, v: 'ok' | 'no' | 'sent') => set({ scanDone: { ...scanDone, [i]: v } })
-  const footer = <><span className="p-counter"><b>{spotsLeft(s)}</b> of {scan.total} spots left</span><span className="p-grow" /><button className="p-btn primary" onClick={() => s.go(s.base)}>Done</button></>
+  const sum = (v: string) => scan.patterns.reduce((n, p, i) => n + (scanDone[i] === v ? p.spots : 0), 0)
+  const seg: [string, number, string][] = [['Linked', sum('ok'), 'pub'], ['Owner notified', sum('sent'), 'sent'], ['Rejected', sum('no'), 'ret'], ['Left', spotsLeft(s), 'left']]
+  const handled = scan.total - spotsLeft(s)
+  const footer = <><span className="p-muted">Linked spots update by themselves on the next change.</span><span className="p-grow" /><button className="p-btn primary" onClick={() => s.go(s.base)}>Done</button></>
   return (
-    <Sheet title="Scan results" sub={<Meta items={[[ICON.folder, 'Library'], [ICON.spark, 'Plain text that matches a fact']]} />} onClose={() => s.go(s.base)} footer={footer}>
-      <p className="p-intro">Linked spots update by themselves on the next change.</p>
-      <div className="p-stack">
-        {scan.patterns.map((p, i) => {
+    <Sheet title="Scan results" sub={<Meta items={[[ICON.folder, 'Library'], [ICON.clock, 'Scanned today 06:00'], [ICON.doc, '1,240 assets']]} />} onClose={() => s.go(s.base)} footer={footer}>
+      <div className="p-progress">
+        <div className="p-progress-top"><b className="p-big">{handled}</b><span className="p-muted">of {scan.total} spots handled</span></div>
+        <div className="p-seg">{seg.map(([l, n, k]) => n > 0 && <span key={k} className={k} style={{ flexGrow: n }} title={`${l}: ${n}`} />)}</div>
+        <div className="p-seg-legend">{seg.map(([l, n, k]) => <span key={k}><i className={k} />{l} <b>{n}</b></span>)}</div>
+      </div>
+      <section className="p-sec">
+        <div className="p-sec-row"><h2 className="ai-label"><AiBadge />We found plain text that matches a fact</h2></div>
+        <div className="p-lbox">{scan.patterns.map((p, i) => {
           const done = scanDone[i]
           const isNew = !p.token
           return (
-            <div key={p.text} className={`p-card ${done ? 'done' : ''}`}>
-              <div className="p-row">
-                <div className="p-grow">
-                  <div className="p-pattern"><span className="p-quote">“{p.text}”</span><span className="p-muted p-small">{p.spots} spots</span></div>
-                  <div className="p-muted p-small">
-                    {isNew ? <>No fact holds this yet. Suggested: create <code>{`{${p.newFact!.token}}`}</code>, owned by {p.newFact!.owner}.</>
-                      : <>Links to <code>{`{${p.token}}`}</code></>}
-                  </div>
+            <div key={p.text} className={`p-lrow ${done ? 'done' : ''}`}>
+              <div className="p-count"><b>{p.spots}</b><span>spots</span></div>
+              <div className="p-grow">
+                <div className="p-quote">“{p.text}”</div>
+                <div className="p-lmeta">
+                  {isNew ? <><span>No fact yet</span><span>Suggested <code>{`{${p.newFact!.token}}`}</code></span></>
+                    : <span className="p-linkto"><Ic d={ICON.link} size={12} />Links to <code>{`{${p.token}}`}</code></span>}
+                  {/* A diff of each spot needs real content, so this stays a placeholder. */}
+                  <button className="p-why" disabled title="Needs real content to show each spot">See spots</button>
                 </div>
-                {/* A diff of each spot needs real content, so this stays a placeholder. */}
-                <div className="p-acts">
-                  <button className="p-btn" disabled title="Needs real content to show each spot">See spots</button>
-                {done ? <span className={`p-chip ${done === 'no' ? '' : 'ok'}`}>{done === 'ok' ? 'Linked' : done === 'sent' ? `${p.newFact!.owner} notified` : 'Rejected'}</span>
-                  : isNew ? <button className="p-btn primary" onClick={() => { decide(i, 'sent'); say(`${p.newFact!.owner} asked to create {${p.newFact!.token}}.`) }}><BtnIc d={ICON.bell}>Notify {p.newFact!.owner}</BtnIc></button>
+              </div>
+              <div className="p-lside">
+                {done ? <span className={`p-donetag ${done === 'no' ? 'off' : ''}`}><Ic d={done === 'no' ? 'M6 6l12 12M18 6L6 18' : done === 'sent' ? ICON.bell : ICON.check} size={13} />
+                    {done === 'ok' ? 'Linked' : done === 'sent' ? `${p.newFact!.owner} notified` : 'Rejected'}</span>
+                  : isNew ? <button className="p-btn sm" onClick={() => { decide(i, 'sent'); say(`${p.newFact!.owner} asked to create {${p.newFact!.token}}.`) }}><BtnIc d={ICON.bell}>Notify {p.newFact!.owner}</BtnIc></button>
                   : <>
-                      <button className="p-btn primary" onClick={() => decide(i, 'ok')}><BtnIc d={ICON.link}>Link {p.spots}</BtnIc></button>
-                      <button className="p-btn" onClick={() => decide(i, 'no')}>Reject</button>
+                      <button className="p-btn sm ghost" title="Reject" aria-label="Reject" onClick={() => decide(i, 'no')}><Ic d="M6 6l12 12M18 6L6 18" size={15} /></button>
+                      <button className="p-btn sm" onClick={() => decide(i, 'ok')}><BtnIc d={ICON.link}>Link {p.spots}</BtnIc></button>
                     </>}
-                </div>
               </div>
             </div>
           )
-        })}
-      </div>
-      <div className="p-card">
-        <div className="p-row">
-          <div className="p-grow"><b>{un.length} spots in PDFs and video cannot hold tokens.</b>
-            <div className="p-muted p-small">{video} in video, {un.length - video} in PDFs, across {new Set(un.map(u => u[0])).size} assets. Not counted in the {scan.total}. They need a new file or a new recording.</div></div>
-          {flagged && <span className="p-chip ok">Flagged</span>}
-          <button className="p-btn" onClick={() => set({ untokOpen: true })}>View {un.length} spots</button>
+        })}</div>
+      </section>
+      <section className="p-sec">
+        <div className="p-sec-row"><h2>Not counted</h2></div>
+        <div className="p-lbox">
+          <div className="p-lrow">
+            <Tile d={ICON.film} tone="muted" />
+            <div className="p-grow">
+              <div className="p-ltitle">{un.length} spots in PDFs and video cannot hold tokens</div>
+              <div className="p-lmeta"><span>{video} in video</span><span>{un.length - video} in PDFs</span><span>{new Set(un.map(u => u[0])).size} assets</span><span>Need a new file or recording</span></div>
+            </div>
+            <div className="p-lside">
+              {flagged && <span className="p-donetag"><Ic d={ICON.flag} size={13} />Flagged</span>}
+              <button className="p-btn sm" onClick={() => set({ untokOpen: true })}>View {un.length}<Ic d={ICON.chevron} size={14} /></button>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
       {s.untokOpen && (
         <Sheet title={`${un.length} spots that cannot hold tokens`} sub={<Meta items={[[ICON.pdf, 'PDFs'], [ICON.film, 'Video']]} />} onBack={() => set({ untokOpen: false })} onClose={() => set({ untokOpen: false })}
           footer={<><span className="p-grow" />{flagged ? <span className="p-chip ok">Flagged for replacement</span> : <button className="p-btn primary" onClick={() => { set({ flagged: true }); say(`${un.length} spots flagged. Their owners get a task.`) }}><BtnIc d={ICON.flag}>Flag all for replacement</BtnIc></button>}</>}>
@@ -67,40 +83,59 @@ export function Scan() {
   )
 }
 
-// Duplicate merge (Card D).
+// Duplicate merge (Card D): what we found, then what is left after merging. Differences sit in each row.
 export function Merge() {
   const { merged, notDup, base, set, say, go } = useProto()
-  const [diffs, setDiffs] = useState(false)
   const settled = merged || notDup
   const footer = settled
     ? <><span className={`p-chip ${merged ? 'ok' : ''}`}>{merged ? 'Merged' : 'Marked as not duplicates'}</span><span className="p-grow" /><button className="p-btn primary" onClick={() => go(base)}>Done</button></>
     : <>
         <button className="p-btn" onClick={() => { set({ notDup: true }); say('Kept as separate assets.') }}>Not duplicates</button>
-        <button className="p-btn" onClick={() => setDiffs(d => !d)}>{diffs ? 'Hide differences' : 'Review differences'}</button>
         <span className="p-grow" />
         <button className="p-btn primary" onClick={() => { set({ merged: true }); say(`Merged. ${merge.archive} versions archived. Links still work.`) }}><BtnIc d={ICON.merge}>Merge into {merge.keep}</BtnIc></button>
       </>
   return (
-    <Sheet title={`${merge.versions} versions of ${merge.asset}`} sub={<Meta items={[[ICON.folder, 'Library'], [ICON.copies, 'Duplicates'], [ICON.users, 'Enablement']]} />} onClose={() => go(base)} footer={footer}>
-      <p className="p-intro">Found by comparing slide text and images across the library.</p>
-      <table className="p-table">
-        <thead><tr><th>Group</th><th>Versions</th><th>Difference</th></tr></thead>
-        <tbody>{merge.groups.map(g => <tr key={g.name} className="static"><td><b>{g.name}</b></td><td>{g.versions}</td><td className="p-muted">{g.diff}</td></tr>)}</tbody>
-      </table>
-      {diffs && !settled && (
-        <div className="p-card">
-          <div className="p-card-title">Differences</div>
-          <div className="p-row"><span className="p-grow">Slide 5, regional pricing</span><span className="p-muted">EMEA shows € prices · India shows ₹ prices · master shows $</span></div>
-          <div className="p-row"><span className="p-grow">Cover</span><span className="p-muted">1 version uses the old logo. Content is the same.</span></div>
-          <div className="p-row"><span className="p-grow">Title and date</span><span className="p-muted">11 versions differ only here</span></div>
-        </div>
-      )}
-      <div className="p-card">
-        <div className="p-card-title ai-label"><AiBadge />Our proposal</div>
-        <p>Keep 1 master and 2 regional variants linked to it. Archive {merge.archive}. Usage history and share links move to the master.</p>
-        {merge.result.map((r, i) => <div key={r} className="p-row"><span className={`p-ricon ${i ? '' : 'master'}`}><Ic d={i ? ICON.link : ICON.star} size={14} /></span><span className="p-grow">{r}</span></div>)}
-        <div className="p-banner">Future pricing changes touch {merge.keep} assets here, not {merge.versions}.</div>
+    <Sheet title={`${merge.versions} versions of ${merge.asset}`} sub={<Meta items={[[ICON.folder, 'Library'], [ICON.deck, 'Deck'], [ICON.users, 'Enablement']]} />} onClose={() => go(base)} footer={footer}>
+      <div className="p-progress p-merge-hero">
+        <div className="p-mh"><b className="p-big">{merge.versions}</b><span>versions today</span></div>
+        <span className="p-mh-arrow"><Ic d={ICON.arrow} size={20} /></span>
+        <div className="p-mh"><b className="p-big">{merge.keep}</b><span>{merged ? 'assets now' : 'after merging'}</span></div>
+        <span className="p-grow" />
+        <span className="p-mh-note">Future pricing changes touch {merge.keep} assets here, not {merge.versions}.</span>
       </div>
+      <section className="p-sec">
+        <div className="p-sec-row"><h2 className="ai-label"><AiBadge />What we found</h2><span className="p-grow" /><span className="p-muted p-small">Compared slide text and images</span></div>
+        <div className="p-lbox">{merge.groups.map(g => (
+          <div key={g.name} className="p-lrow">
+            <div className="p-count"><b>{g.versions}</b><span>{g.versions === 1 ? 'version' : 'versions'}</span></div>
+            <div className="p-grow">
+              <div className="p-ltitle">{g.name}</div>
+              <div className="p-lmeta"><span>{g.detail}</span></div>
+            </div>
+            <span className="p-outcome">{g.outcome}</span>
+          </div>
+        ))}</div>
+      </section>
+      <section className="p-sec">
+        <div className="p-sec-row"><h2>{merged ? 'Library now' : 'After merging'}</h2></div>
+        <div className="p-lbox">
+          {merge.result.map((r, i) => {
+            const [name, role] = [r.replace(/ \(.*\)$/, ''), i ? 'Linked variant' : 'Master']
+            return (
+              <div key={r} className="p-lrow p-lrow-c">
+                <span className={`p-ricon ${i ? '' : 'master'}`}><Ic d={i ? ICON.link : ICON.star} size={14} /></span>
+                <span className="p-grow p-ltitle">{name}</span>
+                <span className={`p-chip ${i ? '' : 'ai'}`}>{role}</span>
+              </div>
+            )
+          })}
+          <div className="p-lrow p-lrow-c">
+            <span className="p-ricon"><Ic d={ICON.archive} size={14} /></span>
+            <div className="p-grow"><div className="p-ltitle">{merge.archive} versions archived</div><div className="p-lmeta"><span>Usage history and share links move to the master</span></div></div>
+            <span className="p-chip">Archive</span>
+          </div>
+        </div>
+      </section>
     </Sheet>
   )
 }

@@ -110,10 +110,11 @@ export const scan = {
 }
 export const merge = {
   asset: 'Ledgerly pricing overview', versions: 14, keep: 3, archive: 11,
+  // detail: what differs; outcome: what the merge does with the group (1 master + 2 variants kept, 11 archived)
   groups: [
-    { name: 'Identical except title and date', versions: 11, diff: 'None in content' },
-    { name: 'Regional pricing slide', versions: 2, diff: 'EMEA and India pricing slide' },
-    { name: 'Old logo', versions: 1, diff: 'Same content, old brand' },
+    { name: 'Identical except title and date', versions: 11, detail: 'Only the cover title and date differ. Slides are the same.', outcome: '1 master, 10 archived' },
+    { name: 'Regional pricing slide', versions: 2, detail: 'Slide 5 shows € for EMEA and ₹ for India. The rest matches.', outcome: '2 linked variants' },
+    { name: 'Old logo', versions: 1, detail: 'Same slides. The cover still has the old logo.', outcome: 'Archived' },
   ],
   result: ['Ledgerly pricing overview v7 (master)', 'Ledgerly pricing overview, EMEA (linked variant)', 'Ledgerly pricing overview, India (linked variant)'],
 }
