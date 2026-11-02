@@ -302,20 +302,14 @@
 .p-box { flex: none; width: 18px; height: 18px; margin-top: 3px; border-radius: 5px; border: 1.5px solid var(--p-faint); display: grid; place-items: center; color: #fff; background: var(--p-surface); transition: background 120ms, border-color 120ms; }
 .p-box.on { background: var(--p-accent); border-color: var(--p-accent); }
 .p-pick.done .p-box { background: var(--p-ok); border-color: var(--p-ok); }
-.p-check { display: flex; align-items: center; gap: 8px; margin-top: 10px; color: var(--p-muted); cursor: pointer; }
-.p-check input { accent-color: var(--p-accent); }
 .p-judge .p-diff { margin-top: 10px; }
 .p-working { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; padding: 12px 14px; border-radius: 10px; background: color-mix(in srgb, var(--p-accent-soft) 55%, var(--p-surface)); border: 1px solid var(--p-accent-line); font-size: 13.5px; color: var(--p-ink-2); }
 
 /* ---------- scan results ---------- */
 .p-stack > .p-card > .p-row { flex-wrap: wrap; }
-.p-stack > .p-card > .p-row > .p-grow { min-width: 260px; }
+.p-stack > .p-card > .p-row > .p-grow { min-width: 200px; }
 .p-pattern { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; }
 .p-quote { font-weight: 600; font-size: 15px; }
-.p-samples { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; padding-top: 12px; border-top: 1px solid var(--p-line); }
-.p-sample { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border-radius: 8px; background: var(--p-bg); }
-.p-sample.off { opacity: .45; text-decoration: line-through; }
-.p-select { height: 34px; padding: 0 8px; border: 1px solid var(--p-line-strong); border-radius: 8px; background: var(--p-surface); color: var(--p-ink); font: inherit; }
 .p-ricon { flex: none; width: 26px; height: 26px; border-radius: 7px; display: grid; place-items: center; background: var(--p-head); color: var(--p-muted); }
 .p-ricon.master { background: var(--p-accent-soft); color: var(--p-accent); }
 
@@ -370,3 +364,5 @@
 .p-table-scroll td:first-child .p-chip { margin-top: 4px; }
 .p-tag.more { background: none; box-shadow: inset 0 0 0 1px var(--p-line-strong); color: var(--p-muted); }
 .p-table-scroll .p-tag { max-width: 110px; overflow: hidden; text-overflow: ellipsis; }
+.p-acts { display: flex; align-items: center; gap: 8px; flex: none; }
+.p-pattern .p-muted { white-space: nowrap; }

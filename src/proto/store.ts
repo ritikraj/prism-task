@@ -2,12 +2,6 @@
 import { create } from 'zustand'
 import { buckets, change, derived, facts, groupSplit, judgmentSplit, merge, scan, wordingGroups, type Bucket } from '../data/ledgerly'
 
-const POOL_SCAN = [
-  'Starter plan one-pager, page 1', 'Mid-market proposal template, page 4', 'Onboarding deck, slide 8', 'Security overview, slide 2',
-  'Annual billing FAQ, section 5', 'Renewal email template', 'Rivalset battlecard, section 1', 'Clearwater pricing deck, slide 11',
-  'Partner pricing guide, page 2', 'Trust and uptime one-pager', 'Enterprise proposal template, page 7', 'Halden renewal proposal, page 5',
-]
-
 export type Confidence = 'High' | 'Medium' | 'Low'
 export type Route = 'home' | 'impact' | 'review' | 'scan' | 'merge' | 'claims' | 'claim' | 'library' | 'asset'
 // impact: the four urgency cards; review: inside one of them.
@@ -28,8 +22,6 @@ export const GUIDE: { route: Route; caption: string }[] = [
   { route: 'merge', caption: `${merge.versions} versions become ${merge.keep}. Future changes touch ${merge.keep} assets here, not ${merge.versions}.` },
 ]
 
-// Scan results: 3 sample spots per pattern.
-export const scanSpots = scan.patterns.map((_, i) => [0, 1, 2].map(k => POOL_SCAN[(i * 3 + k) % POOL_SCAN.length]))
 
 const POOL = [
   'Ledgerly pricing overview v7, slide 4', 'Annual billing FAQ, section 2', 'Clearwater pricing deck, slide 9',
@@ -87,16 +79,14 @@ type S = {
   retired: boolean
   bucket: Bucket
   pub: Record<string, true>
-  narrow: string[]
   jDone: Record<string, 'ok' | 'sent'>
   alerted: Bucket[]
   live: boolean
   allOpen: boolean
   untokOpen: boolean
   claim: string
-  scanDone: Record<number, 'ok' | 'no'>
-  spotsOff: Record<number, number[]>
-  uptimeOwner: string | null
+  // ok = linked, no = rejected, sent = the owner was asked to create the fact
+  scanDone: Record<number, 'ok' | 'no' | 'sent'>
   flagged: boolean
   fileScanned: boolean
   fileLinked: boolean
@@ -109,9 +99,9 @@ type S = {
   reset: () => void
 }
 const initial = {
-  route: 'home' as Route, base: 'home' as Route, guide: true, toast: null, retired: false, bucket: 'Urgent' as Bucket, pub: {}, narrow: [], jDone: {}, alerted: [],
+  route: 'home' as Route, base: 'home' as Route, guide: true, toast: null, retired: false, bucket: 'Urgent' as Bucket, pub: {}, jDone: {}, alerted: [],
   live: false, allOpen: false, untokOpen: false,
-  claim: 'annual_discount', scanDone: {}, spotsOff: {}, uptimeOwner: null, flagged: false,
+  claim: 'annual_discount', scanDone: {}, flagged: false,
   fileScanned: false, fileLinked: false, v6Asked: false, merged: false, notDup: false,
 }
 let timer = 0
@@ -136,6 +126,6 @@ export const allDone = (s: Pick<S, 'pub' | 'jDone' | 'alerted' | 'retired'>) =>
   s.retired && ORDER.every((_, bi) => bucketDone(s, bi) === buckets[bi].places)
 
 // Spots linked by the scan, per token (feeds the claim library's linked counts).
-export const scanLinked = (s: Pick<S, 'scanDone' | 'spotsOff'>, token: string) =>
-  scan.patterns.reduce((n, p, i) => n + ((p.token ?? p.newFact?.token) === token && s.scanDone[i] === 'ok' ? p.spots - (s.spotsOff[i]?.length ?? 0) : 0), 0)
+export const scanLinked = (s: Pick<S, 'scanDone'>, token: string) =>
+  scan.patterns.reduce((n, p, i) => n + (p.token === token && s.scanDone[i] === 'ok' ? p.spots : 0), 0)
 export const spotsLeft = (s: Pick<S, 'scanDone'>) => scan.patterns.reduce((n, p, i) => n - (s.scanDone[i] ? p.spots : 0), scan.total)

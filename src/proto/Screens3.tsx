@@ -1,7 +1,7 @@
 // Phase 3 screens: scan results, duplicate merge, claim library + detail, content library + asset detail.
 import { useState } from 'react'
 import { change, claimHistory, facts, impactAssets, library, merge, messages, scan, v7, type LibAsset, type Part } from '../data/ledgerly'
-import { useProto, notHere, scanSpots, scanLinked, spotsLeft, allDone } from './store'
+import { useProto, notHere, scanLinked, spotsLeft, allDone } from './store'
 import { AiBadge, Avatar, Dropdown, FileType, Head, ICON, Ic, Sheet } from './ui'
 
 const healthClass = (h: string) => (h === 'Current' ? 'ok' : h === 'In review' ? 'review' : 'warn')
@@ -10,15 +10,9 @@ const healthRank = (h: string) => (h === 'Current' ? 2 : h === 'In review' ? 1 :
 // Scan results (Card C): plain text that could become tokens.
 export function Scan() {
   const s = useProto()
-  const { scanDone, spotsOff, uptimeOwner, flagged, set, say } = s
-  const [open, setOpen] = useState<number | null>(null)
-  const [owner, setOwner] = useState('Product')
+  const { scanDone, flagged, set, say } = s
   const un = scan.untokenable, video = un.filter(u => u[1].startsWith('Video')).length
-  const decide = (i: number, v: 'ok' | 'no') => set({ scanDone: { ...scanDone, [i]: v } })
-  const toggleSpot = (i: number, k: number) => {
-    const cur = spotsOff[i] ?? []
-    set({ spotsOff: { ...spotsOff, [i]: cur.includes(k) ? cur.filter(x => x !== k) : [...cur, k] } })
-  }
+  const decide = (i: number, v: 'ok' | 'no' | 'sent') => set({ scanDone: { ...scanDone, [i]: v } })
   const footer = <><span className="p-counter"><b>{spotsLeft(s)}</b> of {scan.total} spots left</span><span className="p-grow" /><button className="p-btn primary" onClick={() => s.go(s.base)}>Done</button></>
   return (
     <Sheet title="Scan results" sub="Library · Plain text that matches a fact" onClose={() => s.go(s.base)} footer={footer}>
@@ -26,7 +20,6 @@ export function Scan() {
       <div className="p-stack">
         {scan.patterns.map((p, i) => {
           const done = scanDone[i]
-          const off = spotsOff[i] ?? []
           const isNew = !p.token
           return (
             <div key={p.text} className={`p-card ${done ? 'done' : ''}`}>
@@ -35,34 +28,20 @@ export function Scan() {
                   <div className="p-pattern"><span className="p-quote">“{p.text}”</span><span className="p-muted p-small">{p.spots} spots</span></div>
                   <div className="p-muted p-small">
                     {isNew ? <>No fact holds this yet. Suggested: create <code>{`{${p.newFact!.token}}`}</code>, owned by {p.newFact!.owner}.</>
-                      : <>Links to <code>{`{${p.token}}`}</code>{off.length > 0 && `, ${off.length} spots excluded`}</>}
+                      : <>Links to <code>{`{${p.token}}`}</code></>}
                   </div>
                 </div>
-                <button className="p-link" onClick={() => setOpen(open === i ? null : i)}>{open === i ? 'Hide spots' : 'See spots'}</button>
-                {done ? <span className={`p-chip ${done === 'ok' ? 'ok' : ''}`}>{done === 'ok' ? (isNew ? `Created, owner ${uptimeOwner}` : 'Linked') : 'Rejected'}</span>
-                  : isNew ? <span className="p-confirm">
-                      <select className="p-select" value={owner} onChange={e => setOwner(e.target.value)} aria-label="Owner">
-                        {['Product', 'Security', 'Finance', 'Product marketing'].map(o => <option key={o}>{o}</option>)}
-                      </select>
-                      <button className="p-btn primary" onClick={() => { set({ uptimeOwner: owner }); decide(i, 'ok'); say(`{${p.newFact!.token}} created. ${owner} owns it.`) }}>Create fact and link {p.spots - off.length}</button>
-                      <button className="p-btn" onClick={() => decide(i, 'no')}>Reject</button>
-                    </span>
+                {/* A diff of each spot needs real content, so this stays a placeholder. */}
+                <div className="p-acts">
+                  <button className="p-btn" disabled title="Needs real content to show each spot">See spots</button>
+                {done ? <span className={`p-chip ${done === 'no' ? '' : 'ok'}`}>{done === 'ok' ? 'Linked' : done === 'sent' ? `${p.newFact!.owner} notified` : 'Rejected'}</span>
+                  : isNew ? <button className="p-btn primary" onClick={() => { decide(i, 'sent'); say(`${p.newFact!.owner} asked to create {${p.newFact!.token}}.`) }}>Notify {p.newFact!.owner}</button>
                   : <>
-                      <button className="p-btn primary" onClick={() => decide(i, 'ok')}>Link {p.spots - off.length}</button>
+                      <button className="p-btn primary" onClick={() => decide(i, 'ok')}>Link {p.spots}</button>
                       <button className="p-btn" onClick={() => decide(i, 'no')}>Reject</button>
                     </>}
-              </div>
-              {open === i && (
-                <div className="p-samples">
-                  {scanSpots[i].map((w, k) => (
-                    <div key={w} className={`p-sample ${off.includes(k) ? 'off' : ''}`}>
-                      <span className="p-grow"><span className="p-small p-muted">{w}</span><br />…{p.text}…</span>
-                      {!done && <button className="p-link" onClick={() => toggleSpot(i, k)}>{off.includes(k) ? 'Include' : 'Exclude'}</button>}
-                    </div>
-                  ))}
-                  <span className="p-muted p-small">Showing 3 of {p.spots}.</span>
                 </div>
-              )}
+              </div>
             </div>
           )
         })}
@@ -130,10 +109,7 @@ export function Merge() {
 export function Claims() {
   const s = useProto()
   const [tab, setTab] = useState<'facts' | 'messages'>('facts')
-  const rows = [
-    ...facts,
-    ...(s.uptimeOwner ? [{ token: 'uptime_sla', label: 'Uptime SLA', value: '99.9%', owner: s.uptimeOwner, source: 'Service terms', lastChecked: 'Nov 2', usedIn: 18, linked: 0 }] : []),
-  ]
+  const rows = facts
   return (
     <>
       <Head title="Claims" sub="Every fact and message your content repeats. Each has one owner and one source.">
@@ -171,7 +147,7 @@ export function Claims() {
 // Claim detail: where it is used, history, who can edit.
 export function Claim() {
   const s = useProto()
-  const f = facts.find(x => x.token === s.claim) ?? { token: 'uptime_sla', label: 'Uptime SLA', value: '99.9%', owner: s.uptimeOwner ?? 'Product', source: 'Service terms', lastChecked: 'Nov 2', usedIn: 18, linked: 0 }
+  const f = facts.find(x => x.token === s.claim) ?? facts[0]
   const linked = f.linked + scanLinked(s, f.token)
   const isDiscount = f.token === change.token
   const history = claimHistory[f.token] ?? [['Nov 2', 'Created from the library scan'], ['Oct 1', `Value checked against ${f.source}`]]

@@ -327,7 +327,7 @@ const Urg = ({ u }: { u: Bucket }) => <span className={`p-chip urg-${u.toLowerCa
 // Step 2: one bucket. Tick the same-sentence groups, publish them once from the footer; judgment items one by one.
 function BucketView() {
   const s = useProto()
-  const { bucket, pub, narrow, jDone, alerted, retired, set, say, go } = s
+  const { bucket, pub, jDone, alerted, retired, set, say, go } = s
   const [confirm, setConfirm] = useState(false)
   const [skip, setSkip] = useState<string[]>([])
   const bi = ORDER.indexOf(bucket)
@@ -358,13 +358,13 @@ function BucketView() {
   const open = mine.filter(g => !pub[`${g.id}:${bi}`])
   const picked = open.filter(g => !skip.includes(g.id))
   const items = judgment.filter(j => j.bucket === bi)
-  // Places a publish reaches: this bucket, plus the other buckets unless that group was narrowed to this one.
+  // Places a publish reaches: the same sentence in every urgency level, so it is approved once.
   const reach = (gs: typeof groups) => {
     const keys: string[] = []
     let n = 0
     gs.forEach(g => g.split.forEach((k, i) => {
       const key = `${g.id}:${i}`
-      if (k > 0 && !pub[key] && (i === bi || !narrow.includes(g.id))) { keys.push(key); n += k }
+      if (k > 0 && !pub[key]) { keys.push(key); n += k }
     }))
     return { keys, n }
   }
@@ -394,7 +394,6 @@ function BucketView() {
         </div>
         {mine.map(g => {
           const here = g.split[bi]
-          const elsewhere = g.split.reduce((n, k, i) => n + (i !== bi && !pub[`${g.id}:${i}`] ? k : 0), 0)
           const done = pub[`${g.id}:${bi}`]
           const on = !done && !skip.includes(g.id)
           const sample = bucketSamples[bi][Number(g.id.slice(1)) % 3]
@@ -404,12 +403,6 @@ function BucketView() {
               <div className="p-grow">
                 <Diff old={g.old} next={g.next} />
                 <div className="p-muted p-small">{here} places here · e.g. {sample[0]}: {sample[1]}</div>
-                {!done && elsewhere > 0 && (
-                  <label className="p-check p-small" onClick={e => e.stopPropagation()}>
-                    <input type="checkbox" checked={!narrow.includes(g.id)} onChange={e => set({ narrow: e.target.checked ? narrow.filter(x => x !== g.id) : [...narrow, g.id] })} />
-                    Also publish the {elsewhere} places in other urgency levels with this sentence
-                  </label>
-                )}
               </div>
               {done && <span className="p-chip ok">Published</span>}
             </div>
