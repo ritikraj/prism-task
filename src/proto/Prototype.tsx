@@ -130,46 +130,56 @@ const statusA = (s: Parameters<typeof allDone>[0] & { live: boolean }) => (allDo
 const CardProgress = ({ of }: { of: number }) =>
   of > 0 ? <span className={`p-card-progress ${of >= 1 ? 'done' : ''}`} role="progressbar" aria-valuenow={Math.round(of * 100)}><span style={{ width: `${Math.min(of, 1) * 100}%` }} /></span> : null
 
-// 1. Home: what needs attention (a scrolling row of cards), then the library at a glance.
-function Home() {
+// Everything that needs attention, then closed changes. Home shows the open ones as cards;
+// "View all (n)" shows every one as a horizontal card.
+type Item = {
+  key: string; tile: [string, 'accent' | 'ai' | 'warn' | 'ok' | 'muted']; chip: ReactNode; title: ReactNode; meta: string
+  stats: [number, string, boolean?][]; progress: number; status: string; open: () => void
+}
+function useItems(): Item[] {
   const s = useProto()
-  const { go, set, merged } = s
-  const total = useAllRows().length
-  // Progress sits on each card's bottom edge instead of a status chip.
   const changeDone = allDone(s) ? change.places
     : lanes.tokens + ORDER.reduce((n, _, bi) => n + bucketDone(s, bi), 0) + (s.retired ? buckets[3].places : 0)
   const scanDone = (scan.total - spotsLeft(s)) / scan.total
-  const synced = `${change.source} · ${change.synced[0].toUpperCase()}${change.synced.slice(1)}`
-  const cards = [
-    <article key="a" className="p-change-card" onClick={() => go('impact')}>
-      <div className="p-card-top"><Tile d={ICON.tag} tone="warn" /><span className="p-grow" /><span className="p-chip">1 fact changed</span></div>
-      <h2>{change.title}</h2>
-      <p className="p-meta">{synced}</p>
-      <div className="p-card-foot"><Stats items={[[<b>{change.places}</b>, 'places'], [<b className="p-hot">{buckets[0].places}</b>, 'urgent']]} /></div>
-      <CardProgress of={changeDone / change.places} />
-    </article>,
-    <article key="c" className="p-change-card" onClick={() => go('scan')}>
-      <div className="p-card-top"><Tile d={ICON.spark} tone="ai" /><span className="p-grow" /><AiBadge label="Scan result" /></div>
-      <h2>We found {scan.total} spots that could become tokens</h2>
-      <p className="p-meta">Library · Once linked, the next change updates them by itself</p>
-      <div className="p-card-foot"><Stats items={[[<b>{spotsLeft(s)}</b>, 'spots left'], [<b>{scan.patterns.length}</b>, 'patterns']]} /></div>
-      <CardProgress of={scanDone} />
-    </article>,
-    <article key="d" className="p-change-card" onClick={() => go('merge')}>
-      <div className="p-card-top"><Tile d={ICON.copies} tone="muted" /><span className="p-grow" /><span className="p-chip">Duplicates</span></div>
-      <h2>{merge.versions} versions of {merge.asset}</h2>
-      <p className="p-meta">Library · Merge them and future changes touch {merge.keep} assets</p>
-      <div className="p-card-foot"><Stats items={[[<b>{merge.versions}</b>, 'versions'], [<b>{merge.keep}</b>, 'after merging']]} /></div>
-      <CardProgress of={merged ? 1 : 0} />
-    </article>,
+  return [
+    { key: 'change', tile: [ICON.tag, 'warn'], chip: <span className="p-chip">1 fact changed</span>, title: change.title,
+      meta: `${change.source} · ${change.synced[0].toUpperCase()}${change.synced.slice(1)}`,
+      stats: [[change.places, 'places'], [buckets[0].places, 'urgent', true]], progress: changeDone / change.places,
+      status: statusA(s) || 'In progress', open: () => s.go('impact') },
+    { key: 'scan', tile: [ICON.spark, 'ai'], chip: <AiBadge label="Scan result" />, title: `We found ${scan.total} spots that could become tokens`,
+      meta: 'Library · Once linked, the next change updates them by itself',
+      stats: [[spotsLeft(s), 'spots left'], [scan.patterns.length, 'patterns']], progress: scanDone,
+      status: scanDone >= 1 ? 'Done' : scanDone > 0 ? 'In progress' : 'Not started', open: () => s.go('scan') },
+    { key: 'merge', tile: [ICON.copies, 'muted'], chip: <span className="p-chip">Duplicates</span>, title: `${merge.versions} versions of ${merge.asset}`,
+      meta: `Library · Merge them and future changes touch ${merge.keep} assets`,
+      stats: [[merge.versions, 'versions'], [merge.keep, 'after merging']], progress: s.merged ? 1 : 0,
+      status: s.merged ? 'Merged' : s.notDup ? 'Kept separate' : 'Not started', open: () => s.go('merge') },
+    ...pastChanges.map(([t, k, p]): Item => ({ key: t, tile: [ICON.tag, 'muted'], chip: <span className="p-chip">{k}</span>, title: t,
+      meta: `${change.source} · Closed`, stats: [[p, 'places']], progress: 1, status: 'Closed', open: notHere })),
   ]
-  const open = [changeDone < change.places, scanDone < 1, !merged].filter(Boolean).length
+}
+const itemStats = (it: Item) => <Stats items={it.stats.map(([n, l, hot]) => [<b className={hot ? 'p-hot' : ''}>{n}</b>, l])} />
+
+// 1. Home: what needs attention (a scrolling row of cards), then the library at a glance.
+function Home() {
+  const { set } = useProto()
+  const items = useItems()
+  const live = items.slice(0, 3)
+  const open = live.filter(it => it.progress < 1).length
   return (
     <>
       <Head title={`Good morning, ${admin.name.split(' ')[0]}`} sub={open ? `${open} ${open === 1 ? 'thing needs' : 'things need'} you today · ${today}` : `You are all caught up · ${today}`} />
       <section className="p-sec">
-        <div className="p-sec-row"><h2>Needs attention</h2><span className="p-grow" /><button className="p-link" onClick={() => set({ allOpen: true })}>View all ({total})</button></div>
-        <Carousel>{cards}</Carousel>
+        <div className="p-sec-row"><h2>Needs attention</h2><span className="p-grow" /><button className="p-link" onClick={() => set({ allOpen: true })}>View all ({items.length})</button></div>
+        <Carousel>{live.map(it => (
+          <article key={it.key} className="p-change-card" onClick={it.open}>
+            <div className="p-card-top"><Tile d={it.tile[0]} tone={it.tile[1]} /><span className="p-grow" />{it.chip}</div>
+            <h2>{it.title}</h2>
+            <p className="p-meta">{it.meta}</p>
+            <div className="p-card-foot">{itemStats(it)}</div>
+            <CardProgress of={it.progress} />
+          </article>
+        ))}</Carousel>
       </section>
       <Dashboard />
     </>
@@ -249,30 +259,38 @@ function Dashboard() {
   )
 }
 
-// Everything: open changes, the scan, duplicates, then closed changes. Home's "View all (n)" counts these.
-type Row = [string, string, string, number | string, () => void]
-function useAllRows(): Row[] {
-  const s = useProto()
-  return [
-    [change.title, '1 fact changed', statusA(s), change.places, () => s.go('impact')],
-    [`We found ${scan.total} spots that could become tokens`, 'Scan result', Object.keys(s.scanDone).length > 0 ? 'In progress' : '', scan.total, () => s.go('scan')],
-    [`${merge.versions} versions of ${merge.asset}`, 'Duplicates', s.merged ? 'Merged' : '', '—', () => s.go('merge')],
-    ...pastChanges.map(([t, k, p]): Row => [t, k, 'Closed', p, notHere]),
-  ]
-}
-
-// The full list lives in a side modal, not a page.
+// View all: the same cards as Home, laid out horizontally. Progress gets its own column on the right.
 function AllChanges() {
   const set = useProto(s => s.set)
-  const rows = useAllRows()
+  const items = useItems()
+  const row = (it: Item) => {
+    const pct = Math.round(Math.min(it.progress, 1) * 100)
+    return (
+      <article key={it.key} className={`p-hcard ${it.status === 'Closed' ? 'closed' : ''}`} onClick={it.open}>
+        <Tile d={it.tile[0]} tone={it.tile[1]} />
+        <div className="p-hcard-main">
+          <div className="p-hcard-title"><h3>{it.title}</h3>{it.chip}</div>
+          <p className="p-meta">{it.meta}</p>
+          {itemStats(it)}
+        </div>
+        <div className={`p-hcard-prog ${pct >= 100 ? 'done' : ''}`}>
+          <div className="p-hcard-pct"><b>{pct}%</b><span>{it.status}</span></div>
+          <span className="p-meter"><span style={{ width: `${pct}%` }} /></span>
+        </div>
+        <span className="p-hcard-go"><Ic d={ICON.chevron} size={16} /></span>
+      </article>
+    )
+  }
   return (
-    <Sheet title={`All (${rows.length})`} onClose={() => set({ allOpen: false })}>
-      <table className="p-table">
-        <thead><tr><th>Item</th><th>Type</th><th>Status</th><th>Places</th></tr></thead>
-        <tbody>{rows.map(([t, k, st, p, open]) => (
-          <tr key={t} onClick={open}><td><b>{t}</b></td><td>{k === 'Scan result' ? <AiBadge label={k} /> : <span className="p-chip">{k}</span>}</td><td>{st && <span className={`p-chip ${st === 'Published' || st === 'Merged' ? 'ok' : ''}`}>{st}</span>}</td><td>{p}</td></tr>
-        ))}</tbody>
-      </table>
+    <Sheet title={`All (${items.length})`} sub={<Meta items={[[ICON.bolt, `${items.slice(0, 3).length} open`], [ICON.archive, `${items.length - 3} closed`]]} />} onClose={() => set({ allOpen: false })}>
+      <section className="p-sec">
+        <div className="p-sec-row"><h2>Open</h2></div>
+        <div className="p-hcards">{items.slice(0, 3).map(row)}</div>
+      </section>
+      <section className="p-sec">
+        <div className="p-sec-row"><h2>Closed</h2></div>
+        <div className="p-hcards">{items.slice(3).map(row)}</div>
+      </section>
     </Sheet>
   )
 }
